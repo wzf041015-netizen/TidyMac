@@ -1,0 +1,16 @@
+# Python / virtualenv
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
+# Compiled macOS native helper binary (built via scripts/install.sh)
+bin/mac-ocr-extract
+macos/*.iconset/
+
+# macOS & local files
+.DS_Store
+.env

@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TidyMac — 轻量 Mac 清理与文档整理工作台</title>
+<style>
+  :root {
+    --bg: #f3f4f8;
+    --surface: #ffffff;
+    --surface-2: #f8f9fc;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #0071e3;
+    --accent-soft: rgba(0, 113, 227, 0.11);
+    --green: #15803d;
+    --green-soft: rgba(21, 128, 61, 0.11);
+    --amber: #b45309;
+    --amber-soft: rgba(180, 83, 9, 0.12);
+    --red: #b91c1c;
+    --red-soft: rgba(185, 28, 28, 0.11);
+    --purple: #6d28d9;
+    --teal: #0d9488;
+    --radius: 13px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117;
+      --surface: #181b23;
+      --surface-2: #1f232e;
+      --border: #2c3140;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #3b99fc;
+      --accent-soft: rgba(59, 153, 252, 0.17);
+      --green: #4ade80;
+      --green-soft: rgba(74, 222, 128, 0.14);
+      --amber: #fbbf24;
+      --amber-soft: rgba(251, 191, 36, 0.15);
+      --red: #f87171;
+      --red-soft: rgba(248, 113, 113, 0.15);
+      --purple: #a78bfa;
+      --teal: #2dd4bf;
+      --shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app-shell {
+    display: grid;
+    grid-template-columns: 272px 1fr;
+    min-height: 100vh;
+  }
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px;
+  }
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #063970, #0d9488);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28);
+  }
+  .brand h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+  .brand p { margin: 1px 0 0; font-size: 11px; color: var(--muted); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav button {
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    padding: 9px 10px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.14s, color 0.14s;
+  }
+  .nav button .nav-left { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap; }
+  .nav button svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.78; }
+  .nav button:hover { background: var(--surface-2); }
+  .nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .nav button.active svg { opacity: 1; }
+  .pill {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .nav button.active .pill { background: var(--accent); color: #fff; border-color: transparent; }
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 11.5px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .main { padding: 20px 26px 88px; max-width: 1340px; width: 100%; }
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .status-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .badge.ok { color: var(--green); background: var(--green-soft); border-color: transparent; }
+  .badge.warn { color: var(--amber); background: var(--amber-soft); border-color: transparent; }
+  .badge.info { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.08s, filter 0.14s;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(0.96); }
+  .btn:active:not(:disabled) { transform: scale(0.985); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  .btn.danger { background: var(--red); color: #fff; border-color: transparent; }
+  .btn.sm { padding: 4px 10px; font-size: 11.5px; border-radius: 6px; }
+
+  .progress-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .progress-track {
+    height: 7px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--teal));
+    transition: width 0.25s ease;
+    width: 0%;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.12s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .card-title { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .card-title > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-val { font-size: 23px; font-weight: 700; letter-spacing: -0.4px; }
+  .card-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+  .breakdown-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+    display: flex;
+    gap: 2px;
+    margin: 10px 0 8px;
+  }
+  .breakdown-seg { height: 100%; transition: width 0.3s ease; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: var(--muted); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .panel-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-head h2 { margin: 0; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .panel-body { padding: 14px 16px; }
+  .subtabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .subtabs button {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .subtabs button.active { background: var(--accent); color: #fff; border-color: transparent; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  input[type="text"], input[type="search"], select {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 12.5px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  th { font-weight: 600; color: var(--muted); background: var(--surface-2); position: sticky; top: 0; z-index: 2; }
+  tr:hover td { background: var(--surface-2); }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; word-break: break-all; }
+  .size-cell { min-width: 96px; }
+  .size-bar { height: 4px; border-radius: 999px; background: var(--surface-2); margin-top: 4px; overflow: hidden; }
+  .size-bar > div { height: 100%; background: var(--accent); border-radius: 999px; }
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tag.keep { background: var(--green-soft); color: var(--green); border-color: transparent; }
+  .tag.warn { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+  .tag.blue { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: 9px; }
+  .group-card { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .group-head { background: var(--surface-2); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; }
+  .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+  .banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .banner.warn { background: var(--amber-soft); color: var(--amber); }
+
+  .floating-bar {
+    position: fixed;
+    bottom: 18px;
+    left: calc(272px + (100% - 272px) / 2);
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 9px 14px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    z-index: 900;
+  }
+  .floating-bar.show { display: flex; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 600px; width: 100%; padding: 18px 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+  .modal h3 { margin: 0 0 8px; font-size: 16px; }
+  .modal-list { max-height: 240px; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 10px 0 14px; font-size: 11.5px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .toast { position: fixed; right: 20px; bottom: 20px; background: #1f2937; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); display: none; z-index: 1100; max-width: 420px; }
+  .toast.show { display: block; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <path d="M8 13h8M8 16h5"/>
+        </svg>
+      </div>
+      <div>
+        <h1>TidyMac 工作台</h1>
+        <p>Mole · Pearcleaner · kondo · czkawka</p>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button data-tab="overview" class="active">
+        <span class="nav-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          <span>只读体检总览</span>
+        </span>
+        <span class="pill" id="pill-overview">就绪</span>
+      </button>
+      <button data-tab="system">
+        <span class="nav-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>系统残留 &amp; 孤立配置</span>
+        </span>
+        <span class="pill" id="pill-system">-</span>
+      </button>
+      <button data-tab="apps">
+        <span class="nav-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+          <span>所有应用 &amp; 关联空间</span>
+        </span>
+        <span class="pill" id="pill-apps">-</span>
+      </button>
+      <button data-tab="projects">
+        <span class="nav-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>AI 试水项目 &amp; 依赖</span>
+        </span>
+        <span class="pill" id="pill-projects">-</span>
+      </button>
+      <button data-tab="dupes">
+        <span class="nav-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>文档查重 &amp; 大文件</span>
+        </span>
+        <span class="pill" id="pill-dupes">-</span>
+      </button>
+      <button data-tab="organize">
+        <span class="nav-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>自动归档 &amp; OCR分拣</span>
+        </span>
+        <span class="pill" id="pill-organize">-</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div><strong>安全与缓存策略</strong></div>
+      <div>• 自动恢复上次体检快照</div>
+      <div>• 清理后增量更新缓存，无需重扫</div>
+      <div>• 所有删除默认移入废纸篓</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="status-strip">
+        <span class="badge" id="disk-badge">磁盘可用: 检测中...</span>
+        <span class="badge info" id="reclaim-badge">可释放空间: 0 B</span>
+        <span class="badge" id="cache-badge">缓存状态: 检查中...</span>
+        <span class="badge" id="fda-badge">权限检测中...</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn primary" id="btn-full-checkup" onclick="startCheckup()">重新只读体检 (Dry-Run)</button>
+      </div>
+    </div>
+
+    <div id="checkup-progress-card" class="progress-card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong id="checkup-progress-title">正在并行运行只读体检...</strong>
+        <span id="checkup-progress-count" style="color:var(--muted);">0 / 8</span>
+      </div>
+      <div id="checkup-progress-sub" style="font-size:12px; color:var(--muted); margin-top:3px;"></div>
+      <div class="progress-track"><div class="progress-fill" id="checkup-progress-fill"></div></div>
+    </div>
+
+    <div id="fda-banner" class="banner warn hidden">
+      <div>
+        <strong>权限说明：</strong>未检测到「完全磁盘访问权限」（仅影响 Mole 扫描废纸篓与 Safari/Mail 缓存，其余清理与整理均正常）。<br />
+        <span style="font-size:11.5px; opacity:0.9;">若你已在系统设置里打开过 TidyMac 开关：因为桌面版刚更新过本地签名，请先在系统设置列表选中 <strong>TidyMac</strong> 点左下角 <strong>「-」移除</strong>，再点 <strong>「+」重新添加</strong> 并按 <strong>⌘Q 完全退出后重开</strong> 即可生效。</span>
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button class="btn sm" onclick="loadStatus(true)">重新检测</button>
+        <button class="btn sm" onclick="openFdaSettings()">前往系统设置</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <section id="tab-overview">
+      <div class="cards-grid">
+        <div class="card" onclick="jumpTo('system','sys-mole')">
+          <div class="card-title"><span>Mole 安全缓存与残留</span><span class="tag">点击查看</span></div>
+          <div class="card-val" id="ov-mole-val">待扫描</div>
+          <div class="card-sub" id="ov-mole-sub">点击体检或进入按需扫描</div>
+        </div>
+        <div class="card" onclick="jumpTo('system','sys-orphans')">
+          <div class="card-title"><span>Pearcleaner 孤立配置</span><span class="tag">点击查看</span></div>
+          <div class="card-val" id="ov-orphan-val">待扫描</div>
+          <div class="card-sub" id="ov-orphan-sub">无主 Preferences / Support / Containers</div>
+        </div>
+        <div class="card" onclick="activateTab('apps')">
+          <div class="card-title"><span>所有应用 &amp; 关联占用</span><span class="tag">点击查看</span></div>
+          <div class="card-val" id="ov-apps-val">待扫描</div>
+          <div class="card-sub" id="ov-apps-sub">查看应用用处、缓存与数据分布</div>
+        </div>
+        <div class="card" onclick="jumpTo('projects','proj-kondo')">
+          <div class="card-title"><span>kondo 工程依赖产物</span><span class="tag">点击查看</span></div>
+          <div class="card-val" id="ov-kondo-val">待扫描</div>
+          <div class="card-sub" id="ov-kondo-sub">只清 node_modules/.venv/target，保留源码</div>
+        </div>
+        <div class="card" onclick="jumpTo('dupes','dup-exact')">
+          <div class="card-title"><span>czkawka 文档查重 &amp; 相似图</span><span class="tag">点击查看</span></div>
+          <div class="card-val" id="ov-dupes-val">待扫描</div>
+          <div class="card-sub" id="ov-dupes-sub">Documents / Downloads / Desktop</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>可释放空间构成分布</h2>
+          <span id="breakdown-total" style="color:var(--muted); font-size:12px;">-</span>
+        </div>
+        <div class="panel-body">
+          <div class="breakdown-bar" id="breakdown-bar"></div>
+          <div class="legend" id="breakdown-legend">暂无扫描数据，点击上方「重新只读体检」即可生成。</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>磁盘大目录透视（集成 Mole Analyze）</h2>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" id="analyze-path" value="~/Library" style="width:240px;" />
+            <button class="btn sm" onclick="runMoleAnalyze()">透视目录占用</button>
+          </div>
+        </div>
+        <div class="panel-body" id="analyze-result">
+          <div class="empty">点击「透视目录占用」，调用 <span class="mono">mo analyze --json</span> 查看真实大目录与大文件排行。</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>开源引擎与本机组件状态</h2>
+          <button class="btn sm" onclick="loadStatus(true)">刷新状态</button>
+        </div>
+        <div class="panel-body" id="engine-status-body">检测中...</div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SYSTEM RESIDUALS (MOLE + PEARCLEANER) -->
+    <section id="tab-system" class="hidden">
+      <div class="subtabs">
+        <button class="active" data-sub="sys-mole" onclick="switchSub('system','sys-mole',this)">Mole 安全缓存 &amp; 残留</button>
+        <button data-sub="sys-orphans" onclick="switchSub('system','sys-orphans',this)">Pearcleaner 孤立配置文件 (Orphaned Files)</button>
+      </div>
+
+      <div id="sys-mole" class="panel">
+        <div class="panel-head">
+          <h2>Mole 预览清单 <span class="tag" id="ts-mole">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn sm" onclick="scanMole()">重新扫描 Mole</button>
+            <button class="btn sm" onclick="selectFiltered('mole', true)">全选当前</button>
+            <button class="btn sm" onclick="selectFiltered('mole', false)">取消全选</button>
+            <button class="btn sm" onclick="whitelistMoleSelected()">加入白名单</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('mole')">移入废纸篓</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="toolbar">
+            <input type="search" id="mole-search" placeholder="筛选路径或应用名..." oninput="renderMole()" style="width:240px;" />
+            <select id="mole-cat" onchange="renderMole()"><option value="">全部分类</option></select>
+            <label><input type="checkbox" id="mole-min1mb" onchange="renderMole()" /> 仅显示 ≥ 1 MB</label>
+            <span id="mole-summary" style="margin-left:auto;color:var(--muted);"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>类别</th><th>条目</th><th style="width:120px;">体积</th><th>路径</th><th style="width:80px;">操作</th></tr></thead>
+              <tbody id="mole-tbody"><tr><td colspan="6" class="empty">尚无数据，点击「重新扫描 Mole」查看检测结果。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="sys-orphans" class="panel hidden">
+        <div class="panel-head">
+          <h2>孤立配置文件扫描（Pearcleaner 同源规则） <span class="tag" id="ts-orphans">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn sm" onclick="openPearcleanerApp()">打开 Pearcleaner.app</button>
+            <button class="btn sm" onclick="scanOrphans()">重新扫描孤立配置</button>
+            <button class="btn sm" onclick="selectFiltered('orphans', true)">全选当前</button>
+            <button class="btn sm" onclick="selectFiltered('orphans', false)">取消全选</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('orphans')">移入废纸篓</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="toolbar">
+            <input type="search" id="orphan-search" placeholder="筛选应用名 / Bundle ID / 路径..." oninput="renderOrphans()" style="width:240px;" />
+            <select id="orphan-cat" onchange="renderOrphans()"><option value="">全部位置</option></select>
+            <span id="orphan-summary" style="margin-left:auto;color:var(--muted);"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>来源应用 (推测)</th><th>位置类别</th><th style="width:120px;">占用体积</th><th>路径与判定依据</th><th style="width:80px;">操作</th></tr></thead>
+              <tbody id="orphan-tbody"><tr><td colspan="6" class="empty">点击「重新扫描孤立配置」检索 Preferences / LaunchAgents / Application Support / Containers 中的无主配置。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: INSTALLED APPS & PURPOSE -->
+    <section id="tab-apps" class="hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>所有已安装应用与关联目录用途 <span class="tag" id="ts-apps">未扫描</span></h2>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="apps-include-sys" onchange="scanApps()" /> 显示系统内置应用</label>
+            <button class="btn sm primary" onclick="scanApps()">重新扫描应用</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="toolbar">
+            <input type="search" id="apps-search" placeholder="搜索应用名、用处或 Bundle ID..." oninput="renderApps()" style="width:260px;" />
+            <select id="apps-cat" onchange="renderApps()"><option value="">全部分类</option></select>
+            <span id="apps-summary" style="margin-left:auto;color:var(--muted);"></span>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.25fr 1fr; gap:14px; align-items:start;">
+            <div class="table-wrap" style="max-height:560px;">
+              <table>
+                <thead><tr><th>应用</th><th>分类与用处</th><th style="width:110px;">总占用</th><th style="width:90px;">可清缓存</th></tr></thead>
+                <tbody id="apps-tbody"><tr><td colspan="4" class="empty">点击「重新扫描应用」或运行全景体检查看本机应用与关联目录用途。</td></tr></tbody>
+              </table>
+            </div>
+            <div class="panel" style="margin:0; box-shadow:none;" id="app-inspector-box">
+              <div class="panel-head"><h2>应用详情与关联空间</h2></div>
+              <div class="panel-body" id="app-inspector-body">
+                <div class="empty">在左侧点击任意应用，查看它的具体用处以及对应的安装本体、缓存、容器、偏好配置等关联路径。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: PROJECTS (KONDO + ABANDONED AI) -->
+    <section id="tab-projects" class="hidden">
+      <div class="subtabs">
+        <button class="active" data-sub="proj-kondo" onclick="switchSub('projects','proj-kondo',this)">kondo 依赖与构建产物（只清依赖保留源码）</button>
+        <button data-sub="proj-abandoned" onclick="switchSub('projects','proj-abandoned',this)">废弃 AI 试水工程识别（整包移入废纸篓）</button>
+      </div>
+
+      <div id="proj-kondo" class="panel">
+        <div class="panel-head">
+          <h2>kondo 依赖产物扫描 <span class="tag" id="ts-kondo">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn sm" onclick="scanKondo()">重新扫描依赖</button>
+            <button class="btn sm" onclick="selectFiltered('kondo', true)">全选</button>
+            <button class="btn sm" onclick="selectFiltered('kondo', false)">全不选</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('kondo')">仅清理依赖（保留源码）</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="toolbar">
+            <input type="search" id="kondo-search" placeholder="筛选工程名或路径..." oninput="renderKondo()" style="width:240px;" />
+            <span id="kondo-summary" style="margin-left:auto;color:var(--muted);"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>工程名 &amp; 路径</th><th>类型</th><th>最后活跃</th><th>依赖产物</th><th style="width:120px;">可释放体积</th><th style="width:80px;">操作</th></tr></thead>
+              <tbody id="kondo-tbody"><tr><td colspan="7" class="empty">点击「重新扫描依赖」识别 node_modules / .venv / target / dist 等依赖目录。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="proj-abandoned" class="panel hidden">
+        <div class="panel-head">
+          <h2>废弃 AI 试水与半成品工程 <span class="tag" id="ts-abandoned">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn sm" onclick="scanAbandoned()">重新扫描半成品</button>
+            <button class="btn sm" onclick="selectAbandonedCandidates()">仅选疑似废弃项</button>
+            <button class="btn sm" onclick="selectFiltered('abandoned', false)">取消全选</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('abandoned')">整包移入废纸篓</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="toolbar">
+            <label><input type="checkbox" id="abandoned-only" checked onchange="renderAbandoned()" /> 仅显示疑似废弃/试水半成品</label>
+            <input type="search" id="abandoned-search" placeholder="筛选工程路径..." oninput="renderAbandoned()" style="width:220px;" />
+            <span id="abandoned-summary" style="margin-left:auto;color:var(--muted);"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>工程</th><th>来源</th><th>Git / 闲置天数</th><th style="width:120px;">总体积</th><th>判定依据</th><th style="width:80px;">操作</th></tr></thead>
+              <tbody id="abandoned-tbody"><tr><td colspan="7" class="empty">点击「重新扫描半成品」分析 Codex / DeepSeek / Kimi / Cursor 等实验项目。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: DUPES (CZKAWKA) -->
+    <section id="tab-dupes" class="hidden">
+      <div class="subtabs">
+        <button class="active" data-sub="dup-exact" onclick="switchSub('dupes','dup-exact',this)">完全重复文件 (czkawka dup)</button>
+        <button data-sub="dup-images" onclick="switchSub('dupes','dup-images',this)">相似图片 (czkawka image)</button>
+        <button data-sub="dup-big" onclick="switchSub('dupes','dup-big',this)">超大文件透视 (czkawka big)</button>
+      </div>
+
+      <div id="dup-exact" class="panel">
+        <div class="panel-head">
+          <h2>Documents / Downloads / Desktop 极速查重 <span class="tag" id="ts-dupes">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dup-docs-only" checked /> 聚焦 PDF/Office/压缩包</label>
+            <button class="btn sm" onclick="scanDupes()">重新查重</button>
+            <button class="btn sm" onclick="selectRecommendedDupes()">勾选建议清理副本</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('dupes')">副本移入废纸篓</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="dup-summary" style="margin-bottom:10px;color:var(--muted);"></div>
+          <div id="dup-groups"><div class="empty">点击「重新查重」通过 BLAKE3 哈希精确定位完全重复的文档与压缩包。</div></div>
+        </div>
+      </div>
+
+      <div id="dup-images" class="panel hidden">
+        <div class="panel-head">
+          <h2>相似图片查重 <span class="tag" id="ts-images">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn sm" onclick="scanImages()">重新扫描图片</button>
+            <button class="btn sm" onclick="selectRecommendedImages()">勾选非推荐副本</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('images')">移入废纸篓</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="img-summary" style="margin-bottom:10px;color:var(--muted);"></div>
+          <div id="img-groups"><div class="empty">点击「重新扫描图片」快速识别近似截图与重复照片。</div></div>
+        </div>
+      </div>
+
+      <div id="dup-big" class="panel hidden">
+        <div class="panel-head">
+          <h2>超大文件 Top 30/40 <span class="tag" id="ts-big">未扫描</span></h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn sm" onclick="scanBigFiles()">重新扫描大文件</button>
+            <button class="btn sm danger" onclick="confirmTrashSelected('big')">选中移入废纸篓</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>文件名</th><th>类型</th><th style="width:120px;">体积</th><th>所在目录</th><th style="width:80px;">操作</th></tr></thead>
+              <tbody id="big-tbody"><tr><td colspan="6" class="empty">点击「重新扫描大文件」列出占用最大的文件。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: ORGANIZE + VISION OCR -->
+    <section id="tab-organize" class="hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>目标整理文件夹 <span class="tag" id="ts-organize">未扫描</span></h2>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="org-dir" value="~/Downloads" style="width:260px;" />
+            <button class="btn sm" onclick="pickOrgFolder()">选择文件夹...</button>
+            <button class="btn sm" onclick="document.getElementById('org-dir').value='~/Downloads'; simOrganize()">下载目录</button>
+            <button class="btn sm" onclick="document.getElementById('org-dir').value='~/Desktop'; simOrganize()">桌面</button>
+            <button class="btn sm primary" onclick="simOrganize()">1. 模拟预览 (organize sim)</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span id="org-sim-summary" style="color:var(--muted);">先运行「模拟预览」查看 YAML 规则命中结果与未命中杂乱文件。</span>
+            <div style="display:flex; gap:8px;">
+              <button class="btn sm" onclick="selectFiltered('org', true)">全选规则预览</button>
+              <button class="btn sm primary" onclick="confirmApplyOrganize('org')">确认执行规则移动</button>
+            </div>
+          </div>
+          <div class="table-wrap" style="max-height:300px;">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>源文件</th><th>命中规则</th><th>目标位置</th><th>大小</th></tr></thead>
+              <tbody id="org-tbody"><tr><td colspan="5" class="empty">暂无模拟预览结果。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>2. 未命中文件 · 按需 macOS Vision OCR / AI 智能分拣</h2>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn sm primary" id="btn-ai-triage" onclick="runAiTriage()">对未命中文件执行 OCR/AI 识别</button>
+            <button class="btn sm primary" onclick="confirmApplyOrganize('ai')">确认移动并重命名</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <details style="margin-bottom:10px; font-size:12px;">
+            <summary style="cursor:pointer; color:var(--muted);">可选：配置本地 Ollama / OpenAI 兼容模型（留空则使用零联网本地 Vision OCR + 语义规则引擎）</summary>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+              <input type="text" id="llm-url" placeholder="例如 http://127.0.0.1:11434/v1" style="width:240px;" />
+              <input type="text" id="llm-model" placeholder="模型名如 qwen2.5:7b" style="width:160px;" />
+              <input type="text" id="llm-key" placeholder="API Key (本地可留空)" style="width:180px;" />
+            </div>
+          </details>
+          <div id="ai-unmatched-info" style="margin-bottom:8px; color:var(--muted);"></div>
+          <div class="table-wrap" style="max-height:340px;">
+            <table>
+              <thead><tr><th style="width:32px;"></th><th>当前文件</th><th>建议归类目录（可编辑）</th><th>建议文件名（可编辑）</th><th>识别依据与摘要</th></tr></thead>
+              <tbody id="ai-tbody"><tr><td colspan="5" class="empty">运行上方「模拟预览」后，若存在未命中的杂乱文件或扫描版 PDF，点击「执行 OCR/AI 识别」生成可编辑预览。</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>最近整理记录（支持一键撤销回滚）</h2>
+          <button class="btn sm" onclick="loadOrgHistory()">刷新记录</button>
+        </div>
+        <div class="panel-body" id="org-history-body"><div class="empty">暂无执行记录。</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="floating-bar" id="floating-bar">
+  <span id="floating-bar-text" style="font-weight:600;">已勾选 0 项</span>
+  <button class="btn sm" onclick="clearCurrentSelection()">取消勾选</button>
+  <button class="btn sm hidden" id="floating-wl-btn" onclick="whitelistMoleSelected()">加入白名单</button>
+  <button class="btn sm danger" onclick="trashCurrentBucket()">移入废纸篓</button>
+</div>
+
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <h3 id="modal-title">确认操作</h3>
+    <div id="modal-desc" style="color:var(--muted);"></div>
+    <div class="modal-list mono" id="modal-list"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn danger" id="modal-confirm-btn">确认执行</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const state = {
+  activeTab: 'overview',
+  activeSub: { system: 'sys-mole', projects: 'proj-kondo', dupes: 'dup-exact' },
+  mole: [],
+  orphans: [],
+  apps: [],
+  selectedAppId: null,
+  appPathSelected: new Set(),
+  kondo: [],
+  abandoned: [],
+  dupes: [],
+  images: [],
+  big: [],
+  orgMoves: [],
+  orgUnmatched: [],
+  aiSuggestions: [],
+  timestamps: {},
+  selected: {
+    mole: new Set(),
+    orphans: new Set(),
+    kondo: new Set(),
+    abandoned: new Set(),
+    dupes: new Set(),
+    images: new Set(),
+    big: new Set(),
+    org: new Set(),
+    ai: new Set(),
+  },
+  totals: { mole: 0, orphans: 0, kondo: 0, dupes: 0, images: 0 }
+};
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function humanBytes(bytes) {
+  let n = Math.max(0, Number(bytes || 0));
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  for (const u of units) {
+    if (n < 1024 || u === 'TB') return u === 'B' ? `${Math.round(n)} B` : `${n.toFixed(2)} ${u}`;
+    n /= 1024;
+  }
+  return `${n} B`;
+}
+
+function relativeTime(ts) {
+  if (!ts) return '未扫描';
+  const diff = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+  return new Date(ts * 1000).toLocaleString();
+}
+
+function showToast(msg, ms = 3200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+async function api(url, method = 'GET', body = null) {
+  const opts = { method, headers: {} };
+  if (body !== null) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const resp = await fetch(url, opts);
+  const data = await resp.json();
+  if (!resp.ok && !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+  return data;
+}
+
+function activateTab(tab) {
+  state.activeTab = tab;
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('main > section').forEach(sec => sec.classList.toggle('hidden', sec.id !== `tab-${tab}`));
+  updateFloatingBar();
+}
+
+document.querySelectorAll('#nav button').forEach(btn => {
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+});
+
+function switchSub(group, targetId, btn) {
+  state.activeSub[group] = targetId;
+  const subBar = document.querySelector(`#tab-${group} .subtabs`);
+  subBar.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.sub === targetId));
+  const sec = document.getElementById(`tab-${group}`);
+  sec.querySelectorAll(':scope > .panel').forEach(p => p.classList.toggle('hidden', p.id !== targetId));
+  updateFloatingBar();
+}
+
+function jumpTo(group, targetId) {
+  activateTab(group);
+  if (targetId) {
+    const btn = document.querySelector(`#tab-${group} .subtabs button[data-sub="${targetId}"]`);
+    if (btn) switchSub(group, targetId, btn);
+  }
+}
+
+function currentTrashBucket() {
+  if (state.activeTab === 'system') return state.activeSub.system === 'sys-mole' ? 'mole' : 'orphans';
+  if (state.activeTab === 'projects') return state.activeSub.projects === 'proj-kondo' ? 'kondo' : 'abandoned';
+  if (state.activeTab === 'dupes') {
+    if (state.activeSub.dupes === 'dup-exact') return 'dupes';
+    if (state.activeSub.dupes === 'dup-images') return 'images';
+    return 'big';
+  }
+  return null;
+}
+
+function selectedBytesForBucket(bucket) {
+  const sel = state.selected[bucket];
+  if (!sel || !sel.size) return 0;
+  if (bucket === 'mole') return state.mole.filter(x => sel.has(x.path)).reduce((a, b) => a + b.sizeBytes, 0);
+  if (bucket === 'orphans') return state.orphans.filter(x => sel.has(x.path)).reduce((a, b) => a + b.sizeBytes, 0);
+  if (bucket === 'kondo') return state.kondo.filter(p => sel.has(p.artifactPaths.join('||'))).reduce((a, b) => a + b.sizeBytes, 0);
+  if (bucket === 'abandoned') return state.abandoned.filter(p => sel.has(p.path)).reduce((a, b) => a + b.sizeBytes, 0);
+  if (bucket === 'big') return state.big.filter(f => sel.has(f.path)).reduce((a, b) => a + b.sizeBytes, 0);
+  if (bucket === 'dupes') {
+    let total = 0;
+    state.dupes.forEach(g => g.files.forEach(f => { if (sel.has(f.path)) total += f.sizeBytes; }));
+    return total;
+  }
+  if (bucket === 'images') {
+    let total = 0;
+    state.images.forEach(g => g.files.forEach(f => { if (sel.has(f.path)) total += f.sizeBytes; }));
+    return total;
+  }
+  return 0;
+}
+
+function updateFloatingBar() {
+  const bar = document.getElementById('floating-bar');
+  const bucket = currentTrashBucket();
+  if (!bucket || !state.selected[bucket] || state.selected[bucket].size === 0) {
+    bar.classList.remove('show');
+    return;
+  }
+  const count = bucket === 'kondo'
+    ? [...state.selected.kondo].reduce((acc, k) => acc + k.split('||').filter(Boolean).length, 0)
+    : state.selected[bucket].size;
+  const bytes = selectedBytesForBucket(bucket);
+  document.getElementById('floating-bar-text').textContent = `已勾选 ${count} 项 · 预计释放 ${humanBytes(bytes)}`;
+  document.getElementById('floating-wl-btn').classList.toggle('hidden', bucket !== 'mole');
+  bar.classList.add('show');
+}
+
+function clearCurrentSelection() {
+  const bucket = currentTrashBucket();
+  if (!bucket) return;
+  selectFiltered(bucket, false);
+  if (bucket === 'dupes') { state.selected.dupes.clear(); renderDupes(); }
+  if (bucket === 'images') { state.selected.images.clear(); renderImages(); }
+  if (bucket === 'big') { state.selected.big.clear(); renderBig(); }
+  updateFloatingBar();
+}
+
+function trashCurrentBucket() {
+  const bucket = currentTrashBucket();
+  if (bucket) confirmTrashSelected(bucket);
+}
+
+function updateTopTotals() {
+  const total = state.totals.mole + state.totals.orphans + state.totals.kondo + state.totals.dupes + state.totals.images;
+  document.getElementById('reclaim-badge').textContent = `可释放空间: ${humanBytes(total)}`;
+  document.getElementById('pill-overview').textContent = total ? humanBytes(total) : '就绪';
+  renderBreakdown(total);
+}
+
+function renderBreakdown(total) {
+  const bar = document.getElementById('breakdown-bar');
+  const legend = document.getElementById('breakdown-legend');
+  document.getElementById('breakdown-total').textContent = total ? `总计 ${humanBytes(total)}` : '-';
+  if (!total) {
+    bar.innerHTML = '';
+    legend.textContent = '暂无扫描数据，点击上方「重新只读体检」即可生成。';
+    return;
+  }
+  const segs = [
+    { label: 'Mole 缓存', val: state.totals.mole, color: '#0071e3' },
+    { label: 'kondo 工程依赖', val: state.totals.kondo, color: '#0d9488' },
+    { label: '文档查重副本', val: state.totals.dupes, color: '#6d28d9' },
+    { label: '相似图片', val: state.totals.images, color: '#d97706' },
+    { label: 'Pearcleaner 孤立配置', val: state.totals.orphans, color: '#dc2626' },
+  ].filter(s => s.val > 0);
+
+  bar.innerHTML = segs.map(s => {
+    const pct = Math.max(1.5, (s.val / total) * 100);
+    return `<div class="breakdown-seg" style="width:${pct.toFixed(2)}%;background:${s.color}" title="${esc(s.label)}: ${humanBytes(s.val)}"></div>`;
+  }).join('');
+
+  legend.innerHTML = segs.map(s => {
+    const pct = ((s.val / total) * 100).toFixed(1);
+    return `<span><i class="legend-dot" style="background:${s.color}"></i>${esc(s.label)} <strong>${humanBytes(s.val)}</strong> (${pct}%)</span>`;
+  }).join('');
+}
+
+function applyCachedPayload(cached) {
+  const mods = cached.modules || {};
+  const ts = cached.timestamps || {};
+  state.timestamps = ts;
+
+  if (mods.mole) applyMoleData(mods.mole, ts.mole);
+  if (mods.orphans) applyOrphansData(mods.orphans, ts.orphans);
+  if (mods.apps) applyAppsData(mods.apps, ts.apps);
+  if (mods.kondo) applyKondoData(mods.kondo, ts.kondo);
+  if (mods.abandoned) applyAbandonedData(mods.abandoned, ts.abandoned);
+  if (mods.dupes_docs) applyDupesData(mods.dupes_docs, ts.dupes_docs);
+  else if (mods.dupes_all) applyDupesData(mods.dupes_all, ts.dupes_all);
+  if (mods.sim_images) applyImagesData(mods.sim_images, ts.sim_images);
+  if (mods.big_files) applyBigData(mods.big_files, ts.big_files);
+  if (mods.organize_sim) applyOrgSimData(mods.organize_sim, ts.organize_sim);
+
+  const badge = document.getElementById('cache-badge');
+  if (cached.lastCheckupAt) {
+    badge.textContent = `上次体检: ${relativeTime(cached.lastCheckupAt)}`;
+    badge.className = 'badge ok';
+  } else {
+    badge.textContent = '缓存: 尚未体检';
+    badge.className = 'badge';
+  }
+}
+
+async function loadInitialCache() {
+  try {
+    const cached = await api('/api/cache');
+    if (cached.disk) {
+      document.getElementById('disk-badge').textContent = `磁盘可用: ${cached.disk.freeHuman} / ${cached.disk.totalHuman}`;
+    }
+    applyCachedPayload(cached);
+  } catch (e) {}
+}
+
+async function loadStatus(forceToast = false) {
+  try {
+    const data = await api('/api/status');
+    document.getElementById('disk-badge').textContent = `磁盘可用: ${data.disk.freeHuman} / ${data.disk.totalHuman}`;
+    const fda = data.permissions.fullDiskAccess;
+    const fdaBadge = document.getElementById('fda-badge');
+    fdaBadge.textContent = fda ? '完全磁盘访问: 已授权' : '完全磁盘访问: 未授权';
+    fdaBadge.className = `badge ${fda ? 'ok' : 'warn'}`;
+    document.getElementById('fda-banner').classList.toggle('hidden', fda);
+
+    const names = {
+      mole: 'tw93/Mole (mo)',
+      pearcleaner: 'alienator88/Pearcleaner',
+      kondo: 'tbillington/kondo',
+      czkawka: 'qarmin/czkawka_cli',
+      organize: 'tfeldmann/organize',
+      ocr: 'Apple Vision OCR + PDFKit',
+      trash: 'macOS 原生废纸篓 (/usr/bin/trash)',
+    };
+    let html = '<table><thead><tr><th>引擎组件</th><th>状态</th><th>版本</th><th>本机路径</th></tr></thead><tbody>';
+    for (const [k, info] of Object.entries(data.engines)) {
+      html += `<tr>
+        <td><strong>${esc(names[k] || k)}</strong></td>
+        <td>${info.installed ? '<span class="tag keep">已就绪</span>' : '<span class="tag warn">未检测到</span>'}</td>
+        <td>${esc(info.version || '-')}</td>
+        <td class="mono">${esc(info.path || '-')}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('engine-status-body').innerHTML = html;
+    if (forceToast) showToast('状态已刷新');
+  } catch (err) {
+    showToast('状态获取失败: ' + err.message);
+  }
+}
+
+async function openFdaSettings() {
+  await api('/api/system/open-fda', 'POST', {});
+  showToast('已打开系统设置 -> 隐私与安全性 -> 完全磁盘访问权限');
+}
+
+async function revealPath(p) {
+  try { await api('/api/system/reveal', 'POST', { path: p }); } catch (e) { showToast('定位失败: ' + e.message); }
+}
+
+let checkupPoller = null;
+async function startCheckup() {
+  const btn = document.getElementById('btn-full-checkup');
+  const pCard = document.getElementById('checkup-progress-card');
+  btn.disabled = true;
+  btn.textContent = '体检进行中...';
+  pCard.classList.remove('hidden');
+
+  try {
+    await api('/api/checkup/start', 'POST', {});
+    clearInterval(checkupPoller);
+    checkupPoller = setInterval(async () => {
+      try {
+        const p = await api('/api/checkup/progress');
+        const st = p.state;
+        const done = st.completed.length;
+        const tot = st.total || 8;
+        document.getElementById('checkup-progress-count').textContent = `${done} / ${tot}`;
+        document.getElementById('checkup-progress-fill').style.width = `${Math.round((done / tot) * 100)}%`;
+        document.getElementById('checkup-progress-sub').textContent = st.pending.length
+          ? `等待完成: ${st.pending.join(' · ')}`
+          : '全部引擎体检完成，缓存已保存';
+        applyCachedPayload(p.cached);
+        if (!st.running) {
+          clearInterval(checkupPoller);
+          btn.disabled = false;
+          btn.textContent = '重新只读体检 (Dry-Run)';
+          setTimeout(() => pCard.classList.add('hidden'), 1500);
+          showToast('全项体检完成，结果已缓存到本地');
+        }
+      } catch (err) {
+        clearInterval(checkupPoller);
+        btn.disabled = false;
+        btn.textContent = '重新只读体检 (Dry-Run)';
+      }
+    }, 350);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '重新只读体检 (Dry-Run)';
+    pCard.classList.add('hidden');
+    showToast('启动体检失败: ' + err.message);
+  }
+}
+
+async function runMoleAnalyze() {
+  const path = document.getElementById('analyze-path').value.trim();
+  const box = document.getElementById('analyze-result');
+  box.innerHTML = '<div class="empty">正在调用 mo analyze --json 扫描...</div>';
+  try {
+    const res = await api('/api/mole/analyze', 'POST', { path: path || null });
+    const d = res.data || {};
+    const entries = d.Entries || d.entries || [];
+    if (!entries.length) {
+      box.innerHTML = `<pre class="mono">${esc(JSON.stringify(d, null, 2).slice(0, 2000))}</pre>`;
+      return;
+    }
+    const maxSz = Math.max(1, ...entries.slice(0, 30).map(e => e.Size || e.size || 0));
+    let html = `<div style="margin-bottom:8px;color:var(--muted);">目标: <span class="mono">${esc(d.Path || path)}</span> · 总计: <strong>${humanBytes(d.TotalSize || 0)}</strong></div>`;
+    html += '<div class="table-wrap" style="max-height:260px;"><table><thead><tr><th>名称</th><th>类型</th><th style="width:120px;">占用</th><th>路径</th><th>操作</th></tr></thead><tbody>';
+    for (const e of entries.slice(0, 30)) {
+      const sz = e.Size || e.size || 0;
+      const pct = Math.max(2, Math.round((sz / maxSz) * 100));
+      html += `<tr>
+        <td><strong>${esc(e.Name || e.name)}</strong></td>
+        <td>${e.IsDir ? '目录' : '文件'}</td>
+        <td class="size-cell"><strong>${humanBytes(sz)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+        <td class="mono">${esc(e.Path || e.path)}</td>
+        <td><button class="btn sm" onclick='revealPath(${JSON.stringify(e.Path || e.path)})'>Finder</button></td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+    box.innerHTML = html;
+  } catch (err) {
+    box.innerHTML = `<div class="empty">分析失败: ${esc(err.message)}</div>`;
+  }
+}
+
+/* ---- MOLE ---- */
+function applyMoleData(res, ts) {
+  state.mole = res.items || [];
+  state.selected.mole.clear();
+  state.totals.mole = res.totalBytes || 0;
+  document.getElementById('ov-mole-val').textContent = res.totalHuman || '0 B';
+  document.getElementById('ov-mole-sub').textContent = `${res.count || 0} 项可清理`;
+  document.getElementById('pill-system').textContent = humanBytes(state.totals.mole + state.totals.orphans);
+  if (ts) document.getElementById('ts-mole').textContent = `扫描于 ${relativeTime(ts)}`;
+  const sel = document.getElementById('mole-cat');
+  const curCat = sel.value;
+  const cats = [...new Set(state.mole.map(x => x.category))];
+  sel.innerHTML = '<option value="">全部分类</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if (cats.includes(curCat)) sel.value = curCat;
+  updateTopTotals();
+  updateFloatingBar();
+  renderMole();
+}
+
+async function scanMole() {
+  showToast('正在运行 mo clean --dry-run...');
+  try {
+    applyMoleData(await api('/api/mole/scan', 'POST', {}), Math.floor(Date.now() / 1000));
+    showToast('Mole Dry-Run 扫描完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function getFilteredMole() {
+  const q = document.getElementById('mole-search').value.trim().toLowerCase();
+  const cat = document.getElementById('mole-cat').value;
+  const min1 = document.getElementById('mole-min1mb').checked;
+  return state.mole.filter(item => {
+    if (cat && item.category !== cat) return false;
+    if (min1 && item.sizeBytes < 1024 * 1024) return false;
+    if (q && !(item.path + ' ' + item.category).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderMole() {
+  const list = getFilteredMole();
+  const tbody = document.getElementById('mole-tbody');
+  document.getElementById('mole-summary').textContent = `显示 ${list.length} 项 · 合计 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">无匹配条目。</td></tr>';
+    return;
+  }
+  const maxSz = Math.max(1, ...list.slice(0, 400).map(x => x.sizeBytes));
+  tbody.innerHTML = list.slice(0, 400).map(item => {
+    const pct = Math.max(2, Math.round((item.sizeBytes / maxSz) * 100));
+    return `<tr>
+      <td><input type="checkbox" ${state.selected.mole.has(item.path) ? 'checked' : ''} onchange="toggleSel('mole', ${JSON.stringify(item.path)}, this.checked)" /></td>
+      <td><span class="tag">${esc(item.category)}</span></td>
+      <td><strong>${esc(item.name)}</strong> ${item.whitelisted ? '<span class="tag keep">白名单</span>' : ''}</td>
+      <td class="size-cell"><strong>${esc(item.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td class="mono">${esc(item.path)}</td>
+      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(item.path)})'>Finder</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function whitelistMoleSelected() {
+  const paths = [...state.selected.mole];
+  if (!paths.length) return showToast('请先勾选条目');
+  const res = await api('/api/mole/whitelist', 'POST', { paths });
+  showToast(`已将 ${res.added.length} 项写入 Mole 白名单`);
+  if (res.updatedCache) applyMoleData(res.updatedCache);
+}
+
+/* ---- ORPHANS ---- */
+function applyOrphansData(res, ts) {
+  state.orphans = res.items || [];
+  state.selected.orphans.clear();
+  state.totals.orphans = res.totalBytes || 0;
+  document.getElementById('ov-orphan-val').textContent = res.totalHuman || '0 B';
+  document.getElementById('ov-orphan-sub').textContent = `${res.count || 0} 项孤立残留（对比 ${res.installedAppsCount || 0} 个已装应用）`;
+  document.getElementById('pill-system').textContent = humanBytes(state.totals.mole + state.totals.orphans);
+  if (ts) document.getElementById('ts-orphans').textContent = `扫描于 ${relativeTime(ts)}`;
+  const sel = document.getElementById('orphan-cat');
+  const curCat = sel.value;
+  const cats = [...new Set(state.orphans.map(x => x.category))];
+  sel.innerHTML = '<option value="">全部位置</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if (cats.includes(curCat)) sel.value = curCat;
+  updateTopTotals();
+  updateFloatingBar();
+  renderOrphans();
+}
+
+async function scanOrphans() {
+  showToast('正在检索孤立配置文件...');
+  try {
+    applyOrphansData(await api('/api/orphans/scan', 'POST', {}), Math.floor(Date.now() / 1000));
+    showToast('孤立配置文件扫描完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+async function openPearcleanerApp() {
+  await api('/api/orphans/open-pearcleaner', 'POST', {});
+  showToast('已启动 Pearcleaner.app');
+}
+
+function getFilteredOrphans() {
+  const q = document.getElementById('orphan-search').value.trim().toLowerCase();
+  const cat = document.getElementById('orphan-cat').value;
+  return state.orphans.filter(item => {
+    if (cat && item.category !== cat) return false;
+    if (q && !(item.appName + ' ' + item.bundleId + ' ' + item.path).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderOrphans() {
+  const list = getFilteredOrphans();
+  const tbody = document.getElementById('orphan-tbody');
+  document.getElementById('orphan-summary').textContent = `显示 ${list.length} 项 · 合计 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">无匹配孤立项。</td></tr>';
+    return;
+  }
+  const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
+  tbody.innerHTML = list.map(item => {
+    const pct = Math.max(2, Math.round((item.sizeBytes / maxSz) * 100));
+    return `<tr>
+      <td><input type="checkbox" ${state.selected.orphans.has(item.path) ? 'checked' : ''} onchange="toggleSel('orphans', ${JSON.stringify(item.path)}, this.checked)" /></td>
+      <td><strong>${esc(item.appName)}</strong><div class="mono" style="color:var(--muted);">${esc(item.bundleId)}</div></td>
+      <td><span class="tag blue">${esc(item.category)}</span></td>
+      <td class="size-cell"><strong>${esc(item.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td><div class="mono">${esc(item.path)}</div><div style="font-size:11px;color:var(--muted);">${esc(item.reason)}</div></td>
+      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(item.path)})'>Finder</button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---- INSTALLED APPS & PURPOSE ---- */
+function applyAppsData(res, ts) {
+  state.apps = res.apps || [];
+  document.getElementById('ov-apps-val').textContent = `${res.count || 0} 个 · ${res.totalHuman || '0 B'}`;
+  document.getElementById('ov-apps-sub').textContent = `其中可清缓存约 ${res.cleanableCacheHuman || '0 B'}`;
+  document.getElementById('pill-apps').textContent = `${res.count || 0} 应用`;
+  if (ts) document.getElementById('ts-apps').textContent = `扫描于 ${relativeTime(ts)}`;
+  const sel = document.getElementById('apps-cat');
+  const cur = sel.value;
+  const cats = [...new Set(state.apps.map(a => a.category))];
+  sel.innerHTML = '<option value="">全部分类</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if (cats.includes(cur)) sel.value = cur;
+  if (!state.selectedAppId && state.apps.length) {
+    state.selectedAppId = state.apps[0].id;
+  }
+  renderApps();
+  renderAppInspector();
+}
+
+async function scanApps() {
+  const includeSystem = document.getElementById('apps-include-sys').checked;
+  showToast('正在扫描已安装应用及关联目录...');
+  try {
+    applyAppsData(await api('/api/apps/scan', 'POST', { includeSystem }), Math.floor(Date.now() / 1000));
+    showToast('应用清单扫描完成');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function getFilteredApps() {
+  const q = document.getElementById('apps-search').value.trim().toLowerCase();
+  const cat = document.getElementById('apps-cat').value;
+  return state.apps.filter(a => {
+    if (cat && a.category !== cat) return false;
+    if (q && !(a.name + ' ' + a.originalName + ' ' + a.bundleId + ' ' + a.purpose + ' ' + a.category).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderApps() {
+  const list = getFilteredApps();
+  const tbody = document.getElementById('apps-tbody');
+  document.getElementById('apps-summary').textContent = `显示 ${list.length} 个应用 · 共占用 ${humanBytes(list.reduce((a, b) => a + b.totalBytes, 0))}`;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">无匹配应用。</td></tr>';
+    return;
+  }
+  const maxSz = Math.max(1, ...list.map(x => x.totalBytes));
+  tbody.innerHTML = list.map(a => {
+    const pct = Math.max(2, Math.round((a.totalBytes / maxSz) * 100));
+    const activeStyle = a.id === state.selectedAppId ? 'background:var(--accent-soft);' : '';
+    return `<tr style="cursor:pointer;${activeStyle}" onclick="selectApp('${esc(a.id)}')">
+      <td><strong>${esc(a.name)}</strong>${a.version ? ` <span style="font-size:11px;color:var(--muted);">v${esc(a.version)}</span>` : ''}<div class="mono" style="color:var(--muted);">${esc(a.bundleId)}</div></td>
+      <td><span class="tag blue">${esc(a.category)}</span><div style="font-size:11.5px;color:var(--muted);margin-top:3px;">${esc(a.purpose)}</div></td>
+      <td class="size-cell"><strong>${esc(a.totalHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td>${a.cacheBytes > 0 ? `<span class="tag warn">${esc(a.cacheHuman)}</span>` : '<span style="color:var(--muted);">0 B</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function selectApp(appId) {
+  state.selectedAppId = appId;
+  state.appPathSelected.clear();
+  const app = state.apps.find(a => a.id === appId);
+  if (app) {
+    app.paths.filter(p => p.safeToClean && p.sizeBytes > 0).forEach(p => state.appPathSelected.add(p.path));
+  }
+  renderApps();
+  renderAppInspector();
+}
+
+function selectAppSafeCaches(onlySafe) {
+  const app = state.apps.find(a => a.id === state.selectedAppId);
+  if (!app) return;
+  state.appPathSelected.clear();
+  app.paths.forEach(p => {
+    if (!onlySafe || p.safeToClean) state.appPathSelected.add(p.path);
+  });
+  renderAppInspector();
+}
+
+function toggleAppPath(path, checked) {
+  if (checked) state.appPathSelected.add(path);
+  else state.appPathSelected.delete(path);
+}
+
+function renderAppInspector() {
+  const box = document.getElementById('app-inspector-body');
+  const app = state.apps.find(a => a.id === state.selectedAppId);
+  if (!app) {
+    box.innerHTML = '<div class="empty">点击左侧任意应用，查看它的用处以及关联路径。</div>';
+    return;
+  }
+  box.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+        <div>
+          <strong style="font-size:16px;">${esc(app.name)}</strong>
+          <span class="tag blue" style="margin-left:6px;">${esc(app.category)}</span>
+          ${app.isSystem ? '<span class="tag keep" style="margin-left:4px;">系统内置</span>' : ''}
+          <div class="mono" style="color:var(--muted); margin-top:2px;">${esc(app.bundleId)} ${app.version ? '· v' + esc(app.version) : ''}</div>
+        </div>
+        <button class="btn sm" onclick='revealPath(${JSON.stringify(app.installPath)})'>在 Finder 显示</button>
+      </div>
+      <div style="margin-top:8px; padding:8px 10px; background:var(--surface-2); border-radius:8px; font-size:12px;">
+        <strong>用处说明：</strong>${esc(app.purpose)} <span style="color:var(--muted);">（${esc(app.basis)}）</span>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:12px; font-size:12px; color:var(--muted);">
+        <span>总占用 <strong>${esc(app.totalHuman)}</strong></span>
+        <span>本体 ${esc(app.appHuman)}</span>
+        <span>可清缓存 ${esc(app.cacheHuman)}</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+      <button class="btn sm" onclick="selectAppSafeCaches(true)">仅选可安全清理缓存</button>
+      <button class="btn sm" onclick="selectAppSafeCaches(false)">全选含本体(卸载)</button>
+      <button class="btn sm danger" onclick="confirmTrashAppPaths()">所选移入废纸篓</button>
+    </div>
+    <div class="table-wrap" style="max-height:330px;">
+      <table>
+        <thead><tr><th style="width:28px;"></th><th>类型与体积</th><th>路径与用处</th></tr></thead>
+        <tbody>
+          ${app.paths.map(p => `
+            <tr>
+              <td><input type="checkbox" ${state.appPathSelected.has(p.path) ? 'checked' : ''} onchange="toggleAppPath(${JSON.stringify(p.path)}, this.checked)" /></td>
+              <td style="white-space:nowrap;">
+                <span class="tag ${p.safeToClean ? 'keep' : (p.role === 'installation' ? 'warn' : '')}">${esc(p.roleLabel)}</span>
+                <div style="font-weight:600;margin-top:2px;">${esc(p.sizeHuman)}</div>
+              </td>
+              <td>
+                <div class="mono">${esc(p.path)}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(p.purpose)}</div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function confirmTrashAppPaths() {
+  const paths = [...state.appPathSelected];
+  if (!paths.length) return showToast('请先在右侧勾选要清理的缓存或关联目录');
+  const app = state.apps.find(a => a.id === state.selectedAppId);
+  const hasAppBundle = app && paths.includes(app.installPath);
+  openModal(
+    hasAppBundle ? `卸载并清理「${app.name}」（${paths.length} 项）` : `清理「${app ? app.name : ''}」关联项（${paths.length} 项）`,
+    hasAppBundle
+      ? '你勾选了应用本体（.app）及以下关联目录，确认后将全部移入 macOS 废纸篓（随时可放回原处）：'
+      : '以下缓存或数据目录将移入 macOS 废纸篓（应用本体保留）：',
+    paths,
+    'danger',
+    '确认移入废纸篓',
+    async () => {
+      const res = await api('/api/apps/trash', 'POST', { paths });
+      showToast(`已移入废纸篓 ${res.movedCount} 项，释放 ${res.reclaimedHuman}`);
+      if (res.updatedApps) applyAppsData(res.updatedApps, state.timestamps.apps);
+      if (res.updatedOrphans) applyOrphansData(res.updatedOrphans, state.timestamps.orphans);
+      if (res.updatedMole) applyMoleData(res.updatedMole, state.timestamps.mole);
+      await loadStatus();
+    }
+  );
+}
+
+/* ---- KONDO & ABANDONED ---- */
+function applyKondoData(res, ts) {
+  state.kondo = res.projects || [];
+  state.selected.kondo.clear();
+  state.totals.kondo = res.totalBytes || 0;
+  document.getElementById('ov-kondo-val').textContent = res.totalHuman || '0 B';
+  document.getElementById('ov-kondo-sub').textContent = `${res.count || 0} 个工程含可清理依赖`;
+  document.getElementById('pill-projects').textContent = res.totalHuman || '0 B';
+  if (ts) document.getElementById('ts-kondo').textContent = `扫描于 ${relativeTime(ts)}`;
+  updateTopTotals();
+  updateFloatingBar();
+  renderKondo();
+}
+
+async function scanKondo() {
+  showToast('正在运行 kondo -n 扫描...');
+  try {
+    applyKondoData(await api('/api/projects/kondo', 'POST', {}), Math.floor(Date.now() / 1000));
+    showToast('kondo 扫描完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function getFilteredKondo() {
+  const q = document.getElementById('kondo-search').value.trim().toLowerCase();
+  return state.kondo.filter(p => !q || (p.name + ' ' + p.projectPath + ' ' + p.projectType).toLowerCase().includes(q));
+}
+
+function renderKondo() {
+  const list = getFilteredKondo();
+  const tbody = document.getElementById('kondo-tbody');
+  document.getElementById('kondo-summary').textContent = `${list.length} 个工程 · 依赖占用 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">无匹配工程。</td></tr>';
+    return;
+  }
+  const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
+  tbody.innerHTML = list.map(p => {
+    const key = p.artifactPaths.join('||');
+    const pct = Math.max(2, Math.round((p.sizeBytes / maxSz) * 100));
+    return `<tr>
+      <td><input type="checkbox" ${state.selected.kondo.has(key) ? 'checked' : ''} onchange="toggleSel('kondo', ${JSON.stringify(key)}, this.checked)" /></td>
+      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted);">${esc(p.projectPath)}</div></td>
+      <td><span class="tag">${esc(p.projectType)}</span></td>
+      <td>${esc(p.lastActiveText)}</td>
+      <td>${p.artifacts.map(a => `<span class="tag blue">${esc(a.name)} (${esc(a.sizeHuman)})</span>`).join(' ')}</td>
+      <td class="size-cell"><strong>${esc(p.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(p.projectPath)})'>Finder</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function applyAbandonedData(res, ts) {
+  state.abandoned = res.projects || [];
+  state.selected.abandoned.clear();
+  if (ts) document.getElementById('ts-abandoned').textContent = `扫描于 ${relativeTime(ts)}`;
+  updateFloatingBar();
+  renderAbandoned();
+}
+
+async function scanAbandoned() {
+  showToast('正在识别半成品与废弃 AI 试水工程...');
+  try {
+    applyAbandonedData(await api('/api/projects/abandoned', 'POST', {}), Math.floor(Date.now() / 1000));
+    showToast('半成品工程识别完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function getFilteredAbandoned() {
+  const only = document.getElementById('abandoned-only').checked;
+  const q = document.getElementById('abandoned-search').value.trim().toLowerCase();
+  return state.abandoned.filter(p => {
+    if (only && !p.isAbandonedCandidate) return false;
+    if (q && !(p.name + ' ' + p.path + ' ' + p.sourceLabel).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function selectAbandonedCandidates() {
+  state.selected.abandoned.clear();
+  state.abandoned.filter(p => p.isAbandonedCandidate).forEach(p => state.selected.abandoned.add(p.path));
+  updateFloatingBar();
+  renderAbandoned();
+}
+
+function renderAbandoned() {
+  const list = getFilteredAbandoned();
+  const tbody = document.getElementById('abandoned-tbody');
+  document.getElementById('abandoned-summary').textContent = `显示 ${list.length} 个工程 · 共 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">无匹配工程。</td></tr>';
+    return;
+  }
+  const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
+  tbody.innerHTML = list.map(p => {
+    const pct = Math.max(2, Math.round((p.sizeBytes / maxSz) * 100));
+    return `<tr>
+      <td><input type="checkbox" ${state.selected.abandoned.has(p.path) ? 'checked' : ''} onchange="toggleSel('abandoned', ${JSON.stringify(p.path)}, this.checked)" /></td>
+      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted);">${esc(p.path)}</div></td>
+      <td><span class="tag">${esc(p.sourceLabel)}</span></td>
+      <td>${p.hasRemote ? '<span class="tag keep">有远程</span>' : '<span class="tag warn">无远程</span>'} · ${p.daysIdle} 天前</td>
+      <td class="size-cell"><strong>${esc(p.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td>${p.isAbandonedCandidate ? '<span class="tag warn">疑似废弃</span> ' : ''}${esc(p.reason)}</td>
+      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(p.path)})'>Finder</button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---- DUPES ---- */
+function applyDupesData(res, ts) {
+  state.dupes = res.groups || [];
+  state.selected.dupes.clear();
+  state.totals.dupes = res.reclaimableBytes || 0;
+  document.getElementById('ov-dupes-val').textContent = humanBytes(state.totals.dupes + state.totals.images);
+  document.getElementById('ov-dupes-sub').textContent = `重复文件 ${res.groupCount || 0} 组 · 相似图 ${state.images.length} 组`;
+  document.getElementById('pill-dupes').textContent = humanBytes(state.totals.dupes + state.totals.images);
+  if (ts) document.getElementById('ts-dupes').textContent = `扫描于 ${relativeTime(ts)}`;
+  updateTopTotals();
+  updateFloatingBar();
+  renderDupes();
+}
+
+async function scanDupes() {
+  const docsOnly = document.getElementById('dup-docs-only').checked;
+  showToast('正在运行 czkawka_cli dup...');
+  try {
+    applyDupesData(await api('/api/dupes/scan', 'POST', { docsOnly }), Math.floor(Date.now() / 1000));
+    showToast('重复文件扫描完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function selectRecommendedDupes() {
+  state.selected.dupes.clear();
+  state.dupes.forEach(g => g.files.forEach(f => { if (!f.recommendedKeep) state.selected.dupes.add(f.path); }));
+  updateFloatingBar();
+  renderDupes();
+}
+
+function renderDupes() {
+  const box = document.getElementById('dup-groups');
+  document.getElementById('dup-summary').textContent = `共 ${state.dupes.length} 组重复 · 真实可释放空间: ${humanBytes(state.totals.dupes)}`;
+  if (!state.dupes.length) {
+    box.innerHTML = '<div class="empty">未发现重复文件。</div>';
+    return;
+  }
+  box.innerHTML = state.dupes.slice(0, 120).map(g => `
+    <div class="group-card">
+      <div class="group-head">
+        <span>${esc((g.ext || 'file').toUpperCase())} · 单份 ${esc(g.fileSizeHuman)} · ${g.count} 份</span>
+        <span class="tag blue">可释放 ${esc(g.reclaimableHuman)}</span>
+      </div>
+      <table><tbody>
+        ${g.files.map(f => `
+          <tr>
+            <td style="width:32px;"><input type="checkbox" ${state.selected.dupes.has(f.path) ? 'checked' : ''} onchange="toggleSel('dupes', ${JSON.stringify(f.path)}, this.checked)" /></td>
+            <td>${f.recommendedKeep ? '<span class="tag keep">建议保留</span> ' : '<span class="tag warn">重复副本</span> '}<strong>${esc(f.name)}</strong></td>
+            <td class="mono">${esc(f.path)}</td>
+            <td style="width:70px;"><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
+          </tr>
+        `).join('')}
+      </tbody></table>
+    </div>
+  `).join('');
+}
+
+function applyImagesData(res, ts) {
+  state.images = res.groups || [];
+  state.selected.images.clear();
+  state.totals.images = res.reclaimableBytes || 0;
+  document.getElementById('ov-dupes-val').textContent = humanBytes(state.totals.dupes + state.totals.images);
+  document.getElementById('ov-dupes-sub').textContent = `重复文件 ${state.dupes.length} 组 · 相似图 ${state.images.length} 组`;
+  document.getElementById('pill-dupes').textContent = humanBytes(state.totals.dupes + state.totals.images);
+  if (ts) document.getElementById('ts-images').textContent = `扫描于 ${relativeTime(ts)}`;
+  updateTopTotals();
+  updateFloatingBar();
+  renderImages();
+}
+
+async function scanImages() {
+  showToast('正在运行 czkawka_cli image...');
+  try {
+    applyImagesData(await api('/api/dupes/images', 'POST', {}), Math.floor(Date.now() / 1000));
+    showToast('相似图片扫描完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function selectRecommendedImages() {
+  state.selected.images.clear();
+  state.images.forEach(g => g.files.forEach(f => { if (!f.recommendedKeep) state.selected.images.add(f.path); }));
+  updateFloatingBar();
+  renderImages();
+}
+
+function renderImages() {
+  const box = document.getElementById('img-groups');
+  document.getElementById('img-summary').textContent = `共 ${state.images.length} 组相似图片 · 预计可释放 ${humanBytes(state.totals.images)}`;
+  if (!state.images.length) {
+    box.innerHTML = '<div class="empty">未发现相似图片。</div>';
+    return;
+  }
+  box.innerHTML = state.images.slice(0, 100).map((g, idx) => `
+    <div class="group-card">
+      <div class="group-head">
+        <span>相似图组 #${idx + 1} · ${g.count} 张</span>
+        <span class="tag blue">可释放 ${esc(g.reclaimableHuman)}</span>
+      </div>
+      <table><tbody>
+        ${g.files.map(f => `
+          <tr>
+            <td style="width:32px;"><input type="checkbox" ${state.selected.images.has(f.path) ? 'checked' : ''} onchange="toggleSel('images', ${JSON.stringify(f.path)}, this.checked)" /></td>
+            <td>${f.recommendedKeep ? '<span class="tag keep">建议保留</span> ' : ''}<strong>${esc(f.name)}</strong> (${f.width}×${f.height} · ${esc(f.sizeHuman)})</td>
+            <td class="mono">${esc(f.path)}</td>
+            <td style="width:70px;"><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
+          </tr>
+        `).join('')}
+      </tbody></table>
+    </div>
+  `).join('');
+}
+
+function applyBigData(res, ts) {
+  state.big = res.files || [];
+  state.selected.big.clear();
+  if (ts) document.getElementById('ts-big').textContent = `扫描于 ${relativeTime(ts)}`;
+  updateFloatingBar();
+  renderBig();
+}
+
+async function scanBigFiles() {
+  showToast('正在运行 czkawka_cli big...');
+  try {
+    applyBigData(await api('/api/dupes/big', 'POST', { limit: 40 }), Math.floor(Date.now() / 1000));
+    showToast('超大文件扫描完成并已缓存');
+  } catch (err) {
+    showToast('扫描失败: ' + err.message);
+  }
+}
+
+function renderBig() {
+  const tbody = document.getElementById('big-tbody');
+  if (!state.big.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无记录。</td></tr>';
+    return;
+  }
+  const maxSz = Math.max(1, ...state.big.map(x => x.sizeBytes));
+  tbody.innerHTML = state.big.map(f => {
+    const pct = Math.max(2, Math.round((f.sizeBytes / maxSz) * 100));
+    return `<tr>
+      <td><input type="checkbox" ${state.selected.big.has(f.path) ? 'checked' : ''} onchange="toggleSel('big', ${JSON.stringify(f.path)}, this.checked)" /></td>
+      <td><strong>${esc(f.name)}</strong></td>
+      <td><span class="tag">${esc((f.ext || 'file').toUpperCase())}</span></td>
+      <td class="size-cell"><strong>${esc(f.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td class="mono">${esc(f.dir)}</td>
+      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---- ORGANIZE & OCR ---- */
+async function pickOrgFolder() {
+  try {
+    const res = await api('/api/system/pick-folder', 'POST', {});
+    if (res.ok && res.path) {
+      document.getElementById('org-dir').value = res.path;
+      await simOrganize();
+    }
+  } catch (err) {
+    showToast('目录选择失败: ' + err.message);
+  }
+}
+
+function applyOrgSimData(res, ts) {
+  state.orgMoves = res.moves || [];
+  state.orgUnmatched = res.unmatchedFiles || [];
+  state.selected.org = new Set(state.orgMoves.map(m => m.srcPath));
+  state.aiSuggestions = [];
+  state.selected.ai.clear();
+  document.getElementById('pill-organize').textContent = `${state.orgMoves.length} 命中`;
+  if (ts) document.getElementById('ts-organize').textContent = `预览于 ${relativeTime(ts)}`;
+  document.getElementById('org-sim-summary').textContent = `目录: ${res.targetDir} · 规则命中 ${res.matchedCount} 个，未命中 ${res.unmatchedCount} 个`;
+  document.getElementById('ai-unmatched-info').textContent = state.orgUnmatched.length
+    ? `当前未命中规则的文件 (${state.orgUnmatched.length} 个): ${state.orgUnmatched.map(u => u.name).slice(0, 8).join('、')}${state.orgUnmatched.length > 8 ? '...' : ''}`
+    : '当前目录下所有文件均已被规则命中。';
+  renderOrgMoves();
+  renderAiSuggestions();
+}
+
+async function simOrganize() {
+  const dir = document.getElementById('org-dir').value.trim();
+  showToast('正在运行 organize sim 模拟预览...');
+  try {
+    applyOrgSimData(await api('/api/organize/sim', 'POST', { targetDir: dir || null }), Math.floor(Date.now() / 1000));
+    showToast('organize 模拟预览完成');
+  } catch (err) {
+    showToast('模拟失败: ' + err.message);
+  }
+}
+
+function renderOrgMoves() {
+  const tbody = document.getElementById('org-tbody');
+  if (!state.orgMoves.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">无规则命中文件。</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.orgMoves.map(m => `
+    <tr>
+      <td><input type="checkbox" ${state.selected.org.has(m.srcPath) ? 'checked' : ''} onchange="toggleSel('org', ${JSON.stringify(m.srcPath)}, this.checked)" /></td>
+      <td><strong>${esc(m.srcName)}</strong></td>
+      <td><span class="tag blue">${esc(m.ruleName)}</span></td>
+      <td class="mono">${esc(m.destPath)}</td>
+      <td>${esc(m.sizeHuman)}</td>
+    </tr>
+  `).join('');
+}
+
+async function runAiTriage() {
+  if (!state.orgUnmatched.length) {
+    await simOrganize();
+    if (!state.orgUnmatched.length) return showToast('没有未命中的文件需要分析');
+  }
+  const btn = document.getElementById('btn-ai-triage');
+  btn.disabled = true;
+  btn.textContent = 'Vision OCR / 内容分析中...';
+  const baseUrl = document.getElementById('llm-url').value.trim();
+  const model = document.getElementById('llm-model').value.trim();
+  const apiKey = document.getElementById('llm-key').value.trim();
+  const llmConfig = (baseUrl && model) ? { baseUrl, model, apiKey } : null;
+  try {
+    const res = await api('/api/organize/ai-triage', 'POST', {
+      paths: state.orgUnmatched.map(u => u.path),
+      baseDir: document.getElementById('org-dir').value.trim() || null,
+      llmConfig,
+    });
+    state.aiSuggestions = res.suggestions || [];
+    state.selected.ai = new Set(state.aiSuggestions.map(s => s.srcPath));
+    renderAiSuggestions();
+    showToast(`已完成 ${state.aiSuggestions.length} 个未命中文件的内容/OCR分析`);
+  } catch (err) {
+    showToast('OCR/AI 分析失败: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '对未命中文件执行 OCR/AI 识别';
+  }
+}
+
+function renderAiSuggestions() {
+  const tbody = document.getElementById('ai-tbody');
+  if (!state.aiSuggestions.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">点击「对未命中文件执行 OCR/AI 识别」查看重命名与归档建议。</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.aiSuggestions.map((s, idx) => `
+    <tr>
+      <td><input type="checkbox" ${state.selected.ai.has(s.srcPath) ? 'checked' : ''} onchange="toggleSel('ai', ${JSON.stringify(s.srcPath)}, this.checked)" /></td>
+      <td><strong>${esc(s.currentName)}</strong><div style="font-size:11px;color:var(--muted);">${esc(s.sizeHuman)} · 置信度 ${s.confidence}%</div></td>
+      <td><input type="text" value="${esc(s.suggestedRelDir)}" onchange="state.aiSuggestions[${idx}].suggestedRelDir = this.value" style="width:190px;" /></td>
+      <td><input type="text" value="${esc(s.suggestedName)}" onchange="state.aiSuggestions[${idx}].suggestedName = this.value" style="width:240px;" /></td>
+      <td><div>${s.ocrUsed ? '<span class="tag blue">Vision OCR</span> ' : ''}${esc(s.basis)}</div><div style="font-size:11px;color:var(--muted);">${esc((s.excerptPreview || '').slice(0, 90))}</div></td>
+    </tr>
+  `).join('');
+}
+
+function confirmApplyOrganize(kind) {
+  let moves = [];
+  if (kind === 'org') {
+    moves = state.orgMoves.filter(m => state.selected.org.has(m.srcPath)).map(m => ({
+      srcPath: m.srcPath,
+      destPath: m.destPath,
+      ruleName: m.ruleName,
+    }));
+  } else {
+    const baseDir = document.getElementById('org-dir').value.trim();
+    moves = state.aiSuggestions.filter(s => state.selected.ai.has(s.srcPath)).map(s => {
+      const parent = baseDir ? baseDir.replace(/\/+$/, '') : s.srcPath.substring(0, s.srcPath.lastIndexOf('/'));
+      const rel = s.suggestedRelDir.replace(/^\/+|\/+$/g, '');
+      return {
+        srcPath: s.srcPath,
+        destPath: `${parent}/${rel}/${s.suggestedName}`,
+        ruleName: `OCR/AI: ${s.suggestedCategory}`,
+      };
+    });
+  }
+  if (!moves.length) return showToast('请先勾选至少一条移动预览');
+
+  openModal(
+    `确认移动并整理 ${moves.length} 个文件`,
+    '所有文件将按以下路径移动（自动避开重名冲突，绝不覆盖，且记录可撤销历史）：',
+    moves.map(m => `${m.srcPath}  →  ${m.destPath}`),
+    'primary',
+    '确认移动',
+    async () => {
+      const res = await api('/api/organize/apply', 'POST', { moves });
+      showToast(`整理完成：移动 ${res.movedCount} 个文件${res.failedCount ? `，失败 ${res.failedCount} 个` : ''}`);
+      await simOrganize();
+      await loadOrgHistory();
+    }
+  );
+}
+
+async function loadOrgHistory() {
+  try {
+    const res = await api('/api/organize/history');
+    const body = document.getElementById('org-history-body');
+    if (!res.batches || !res.batches.length) {
+      body.innerHTML = '<div class="empty">暂无整理历史记录。</div>';
+      return;
+    }
+    body.innerHTML = '<table><thead><tr><th>批次</th><th>移动数量</th><th>状态</th><th>操作</th></tr></thead><tbody>' +
+      res.batches.map(b => `<tr>
+        <td class="mono">${esc(b.batchId)} (${new Date(b.ts * 1000).toLocaleString()})</td>
+        <td>${b.count} 个文件</td>
+        <td>${b.reverted ? '<span class="tag">已撤销</span>' : '<span class="tag keep">可撤销</span>'}</td>
+        <td>${b.reverted ? '-' : `<button class="btn sm" onclick="revertBatch('${esc(b.batchId)}')">撤销本次移动</button>`}</td>
+      </tr>`).join('') + '</tbody></table>';
+  } catch (e) {}
+}
+
+async function revertBatch(batchId) {
+  const res = await api('/api/organize/revert', 'POST', { batchId });
+  showToast(`已撤销还原 ${res.revertedCount} 个文件`);
+  await loadOrgHistory();
+  await simOrganize();
+}
+
+/* ---- SELECTION & INCREMENTAL CACHE PRUNE ---- */
+function toggleSel(bucket, key, checked) {
+  if (checked) state.selected[bucket].add(key);
+  else state.selected[bucket].delete(key);
+  updateFloatingBar();
+}
+
+function selectFiltered(bucket, select) {
+  const set = state.selected[bucket];
+  if (!select) { set.clear(); }
+  else if (bucket === 'mole') getFilteredMole().forEach(x => set.add(x.path));
+  else if (bucket === 'orphans') getFilteredOrphans().forEach(x => set.add(x.path));
+  else if (bucket === 'kondo') getFilteredKondo().forEach(p => set.add(p.artifactPaths.join('||')));
+  else if (bucket === 'abandoned') getFilteredAbandoned().forEach(p => set.add(p.path));
+  else if (bucket === 'org') state.orgMoves.forEach(m => set.add(m.srcPath));
+
+  if (bucket === 'mole') renderMole();
+  if (bucket === 'orphans') renderOrphans();
+  if (bucket === 'kondo') renderKondo();
+  if (bucket === 'abandoned') renderAbandoned();
+  if (bucket === 'org') renderOrgMoves();
+  updateFloatingBar();
+}
+
+function confirmTrashSelected(bucket) {
+  let paths = [];
+  let endpoint = '';
+  let totalBytes = selectedBytesForBucket(bucket);
+
+  if (bucket === 'mole') {
+    paths = [...state.selected.mole];
+    endpoint = '/api/mole/trash';
+  } else if (bucket === 'orphans') {
+    paths = [...state.selected.orphans];
+    endpoint = '/api/orphans/trash';
+  } else if (bucket === 'kondo') {
+    [...state.selected.kondo].forEach(k => k.split('||').forEach(p => { if (p) paths.push(p); }));
+    endpoint = '/api/projects/trash';
+  } else if (bucket === 'abandoned') {
+    paths = [...state.selected.abandoned];
+    endpoint = '/api/projects/trash';
+  } else if (bucket === 'dupes' || bucket === 'images' || bucket === 'big') {
+    paths = [...state.selected[bucket]];
+    endpoint = '/api/dupes/trash';
+  }
+
+  if (!paths.length) return showToast('请先勾选要清理的项目');
+
+  openModal(
+    `移入 macOS 废纸篓确认（${paths.length} 项）`,
+    `预计释放空间：${humanBytes(totalBytes)}。所有条目将移入系统废纸篓并自动更新本地缓存，无需重新体检：`,
+    paths,
+    'danger',
+    '确认移入废纸篓',
+    async () => {
+      const res = await api(endpoint, 'POST', { paths });
+      showToast(`已移入废纸篓 ${res.movedCount} 项，释放 ${res.reclaimedHuman}`);
+      if (bucket === 'mole' && res.updatedCache) applyMoleData(res.updatedCache, state.timestamps.mole);
+      if (bucket === 'orphans' && res.updatedCache) applyOrphansData(res.updatedCache, state.timestamps.orphans);
+      if (bucket === 'kondo' || bucket === 'abandoned') {
+        if (res.updatedKondo) applyKondoData(res.updatedKondo, state.timestamps.kondo);
+        if (res.updatedAbandoned) applyAbandonedData(res.updatedAbandoned, state.timestamps.abandoned);
+      }
+      if ((bucket === 'dupes' || bucket === 'images' || bucket === 'big') && res.updatedCaches) {
+        const u = res.updatedCaches;
+        if (u.dupes_docs) applyDupesData(u.dupes_docs, state.timestamps.dupes_docs);
+        else if (u.dupes_all) applyDupesData(u.dupes_all, state.timestamps.dupes_all);
+        if (u.sim_images) applyImagesData(u.sim_images, state.timestamps.sim_images);
+        if (u.big_files) applyBigData(u.big_files, state.timestamps.big_files);
+      }
+      await loadStatus();
+    }
+  );
+}
+
+let modalAction = null;
+function openModal(title, desc, lines, btnKind, btnText, onConfirm) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-desc').textContent = desc;
+  document.getElementById('modal-list').innerHTML = lines.map(l => `<div>${esc(l)}</div>`).join('');
+  const cbtn = document.getElementById('modal-confirm-btn');
+  cbtn.className = `btn ${btnKind}`;
+  cbtn.textContent = btnText;
+  modalAction = onConfirm;
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('confirm-modal').classList.remove('show');
+  modalAction = null;
+}
+document.getElementById('modal-confirm-btn').addEventListener('click', async () => {
+  const fn = modalAction;
+  closeModal();
+  if (fn) {
+    try { await fn(); } catch (err) { showToast('执行失败: ' + err.message); }
+  }
+});
+
+loadInitialCache();
+loadStatus();
+loadOrgHistory();
+</script>
+</body>
+</html>

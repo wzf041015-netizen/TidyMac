@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tidymac"
+version = "0.2.0"
+description = "Lightweight, zero-daemon macOS cleanup and document organization workbench built on mature open-source tools."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+tidymac = "tidymac.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["tidymac*"]

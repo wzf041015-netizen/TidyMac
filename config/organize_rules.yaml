@@ -1,0 +1,182 @@
+# TidyMac 默认文档与下载目录归档规则 (tfeldmann/organize YAML 规则集)
+#
+# 说明：
+# - 此文件为开源仓库提供的通用默认模板；运行前默认执行 `organize sim`（Dry-Run 预览），确认后再真实移动。
+# - 如需个性化定制且不想污染仓库，可将本文件复制到 `~/.config/tidymac/organize_rules.yaml`，
+#   TidyMac 会优先加载 `~/.config/tidymac/organize_rules.yaml`。
+
+rules:
+  - name: "安装包与磁盘镜像 (DMG / PKG / ISO)"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+      - path: "~/Desktop"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - dmg
+          - pkg
+          - iso
+    actions:
+      - move:
+          dest: "{path.parent}/归档_安装包/"
+          on_conflict: rename_new
+
+  - name: "发票、报销单与合同文档"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+      - path: "~/Desktop"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - pdf
+          - ofd
+      - name:
+          contains:
+            - "发票"
+            - "报销"
+            - "收据"
+            - "账单"
+            - "合同"
+            - "协议"
+            - "invoice"
+            - "receipt"
+            - "contract"
+          case_sensitive: false
+    actions:
+      - move:
+          dest: "{path.parent}/归档_票据合同/"
+          on_conflict: rename_new
+
+  - name: "技术方案与项目数据文件"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - md
+          - txt
+          - csv
+          - json
+          - yaml
+          - yml
+      - name:
+          contains:
+            - "architecture"
+            - "proposal"
+            - "readme"
+            - "report"
+            - "spec"
+            - "交接"
+            - "方案"
+            - "报告"
+            - "文档"
+          case_sensitive: false
+    actions:
+      - move:
+          dest: "{path.parent}/归档_技术与数据/"
+          on_conflict: rename_new
+
+  - name: "办公文档与电子表格 (PDF / Office / iWork)"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - pdf
+          - doc
+          - docx
+          - xls
+          - xlsx
+          - ppt
+          - pptx
+          - pages
+          - numbers
+          - key
+    actions:
+      - move:
+          dest: "{path.parent}/归档_办公文档/"
+          on_conflict: rename_new
+
+  - name: "电子书与思维导图 (EPUB / MOBI / XMind)"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - epub
+          - mobi
+          - azw3
+          - xmind
+    actions:
+      - move:
+          dest: "{path.parent}/归档_电子书与导图/"
+          on_conflict: rename_new
+
+  - name: "屏幕截图与图片素材"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+      - path: "~/Desktop"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - png
+          - jpg
+          - jpeg
+          - webp
+          - heic
+          - gif
+          - svg
+    actions:
+      - move:
+          dest: "{path.parent}/归档_图片截图/"
+          on_conflict: rename_new
+
+  - name: "压缩包归档 (ZIP / RAR / 7Z / TAR)"
+    locations:
+      - path: "~/Downloads"
+        max_depth: 0
+        exclude_dirs:
+          - "归档_*"
+          - "*.app"
+    filters:
+      - extension:
+          - zip
+          - rar
+          - 7z
+          - tar
+          - gz
+          - tgz
+    actions:
+      - move:
+          dest: "{path.parent}/归档_压缩包/"
+          on_conflict: rename_new
