@@ -526,7 +526,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>类别</th><th>条目</th><th style="width:120px;">体积</th><th>路径</th><th style="width:80px;">操作</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-mole" title="全选 / 取消全选当前列表" onchange="selectFiltered('mole', this.checked)" /></th><th>类别</th><th>条目</th><th style="width:120px;">体积</th><th>路径</th><th style="width:80px;">操作</th></tr></thead>
               <tbody id="mole-tbody"><tr><td colspan="6" class="empty">尚无数据，点击「重新扫描 Mole」查看检测结果。</td></tr></tbody>
             </table>
           </div>
@@ -552,7 +552,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>来源应用 (推测)</th><th>位置类别</th><th style="width:120px;">占用体积</th><th>路径与判定依据</th><th style="width:80px;">操作</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-orphans" title="全选 / 取消全选当前列表" onchange="selectFiltered('orphans', this.checked)" /></th><th>来源应用 (推测)</th><th>位置类别</th><th style="width:120px;">占用体积</th><th>路径与判定依据</th><th style="width:80px;">操作</th></tr></thead>
               <tbody id="orphan-tbody"><tr><td colspan="6" class="empty">点击「重新扫描孤立配置」检索 Preferences / LaunchAgents / Application Support / Containers 中的无主配置。</td></tr></tbody>
             </table>
           </div>
@@ -606,8 +606,8 @@
           <h2>kondo 依赖产物扫描 <span class="tag" id="ts-kondo">未扫描</span></h2>
           <div style="display:flex; gap:8px;">
             <button class="btn sm" onclick="scanKondo()">重新扫描依赖</button>
-            <button class="btn sm" onclick="selectFiltered('kondo', true)">全选</button>
-            <button class="btn sm" onclick="selectFiltered('kondo', false)">全不选</button>
+            <button class="btn sm" onclick="selectFiltered('kondo', true)">全选当前</button>
+            <button class="btn sm" onclick="selectFiltered('kondo', false)">取消全选</button>
             <button class="btn sm danger" onclick="confirmTrashSelected('kondo')">仅清理依赖（保留源码）</button>
           </div>
         </div>
@@ -618,7 +618,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>工程名 &amp; 路径</th><th>类型</th><th>最后活跃</th><th>依赖产物</th><th style="width:120px;">可释放体积</th><th style="width:80px;">操作</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-kondo" title="全选 / 取消全选当前列表" onchange="selectFiltered('kondo', this.checked)" /></th><th>工程名 &amp; 路径</th><th>类型</th><th>最后活跃</th><th>依赖产物</th><th style="width:120px;">可释放体积</th><th style="width:80px;">操作</th></tr></thead>
               <tbody id="kondo-tbody"><tr><td colspan="7" class="empty">点击「重新扫描依赖」识别 node_modules / .venv / target / dist 等依赖目录。</td></tr></tbody>
             </table>
           </div>
@@ -630,6 +630,7 @@
           <h2>废弃 AI 试水与半成品工程 <span class="tag" id="ts-abandoned">未扫描</span></h2>
           <div style="display:flex; gap:8px;">
             <button class="btn sm" onclick="scanAbandoned()">重新扫描半成品</button>
+            <button class="btn sm" onclick="selectFiltered('abandoned', true)">全选当前</button>
             <button class="btn sm" onclick="selectAbandonedCandidates()">仅选疑似废弃项</button>
             <button class="btn sm" onclick="selectFiltered('abandoned', false)">取消全选</button>
             <button class="btn sm danger" onclick="confirmTrashSelected('abandoned')">整包移入废纸篓</button>
@@ -643,7 +644,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>工程</th><th>来源</th><th>Git / 闲置天数</th><th style="width:120px;">总体积</th><th>判定依据</th><th style="width:80px;">操作</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-abandoned" title="全选 / 取消全选当前列表" onchange="selectFiltered('abandoned', this.checked)" /></th><th>工程</th><th>来源</th><th>Git / 闲置天数</th><th style="width:120px;">总体积</th><th>判定依据</th><th style="width:80px;">操作</th></tr></thead>
               <tbody id="abandoned-tbody"><tr><td colspan="7" class="empty">点击「重新扫描半成品」分析 Codex / DeepSeek / Kimi / Cursor 等实验项目。</td></tr></tbody>
             </table>
           </div>
@@ -666,6 +667,7 @@
             <label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dup-docs-only" checked /> 聚焦 PDF/Office/压缩包</label>
             <button class="btn sm" onclick="scanDupes()">重新查重</button>
             <button class="btn sm" onclick="selectRecommendedDupes()">勾选建议清理副本</button>
+            <button class="btn sm" onclick="selectFiltered('dupes', false)">取消全选</button>
             <button class="btn sm danger" onclick="confirmTrashSelected('dupes')">副本移入废纸篓</button>
           </div>
         </div>
@@ -681,6 +683,7 @@
           <div style="display:flex; gap:8px;">
             <button class="btn sm" onclick="scanImages()">重新扫描图片</button>
             <button class="btn sm" onclick="selectRecommendedImages()">勾选非推荐副本</button>
+            <button class="btn sm" onclick="selectFiltered('images', false)">取消全选</button>
             <button class="btn sm danger" onclick="confirmTrashSelected('images')">移入废纸篓</button>
           </div>
         </div>
@@ -695,13 +698,15 @@
           <h2>超大文件 Top 30/40 <span class="tag" id="ts-big">未扫描</span></h2>
           <div style="display:flex; gap:8px;">
             <button class="btn sm" onclick="scanBigFiles()">重新扫描大文件</button>
+            <button class="btn sm" onclick="selectFiltered('big', true)">全选当前</button>
+            <button class="btn sm" onclick="selectFiltered('big', false)">取消全选</button>
             <button class="btn sm danger" onclick="confirmTrashSelected('big')">选中移入废纸篓</button>
           </div>
         </div>
         <div class="panel-body">
           <div class="table-wrap">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>文件名</th><th>类型</th><th style="width:120px;">体积</th><th>所在目录</th><th style="width:80px;">操作</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-big" title="全选 / 取消全选当前列表" onchange="selectFiltered('big', this.checked)" /></th><th>文件名</th><th>类型</th><th style="width:120px;">体积</th><th>所在目录</th><th style="width:80px;">操作</th></tr></thead>
               <tbody id="big-tbody"><tr><td colspan="6" class="empty">点击「重新扫描大文件」列出占用最大的文件。</td></tr></tbody>
             </table>
           </div>
@@ -726,13 +731,14 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <span id="org-sim-summary" style="color:var(--muted);">先运行「模拟预览」查看 YAML 规则命中结果与未命中杂乱文件。</span>
             <div style="display:flex; gap:8px;">
-              <button class="btn sm" onclick="selectFiltered('org', true)">全选规则预览</button>
+              <button class="btn sm" onclick="selectFiltered('org', true)">全选当前</button>
+              <button class="btn sm" onclick="selectFiltered('org', false)">取消全选</button>
               <button class="btn sm primary" onclick="confirmApplyOrganize('org')">确认执行规则移动</button>
             </div>
           </div>
           <div class="table-wrap" style="max-height:300px;">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>源文件</th><th>命中规则</th><th>目标位置</th><th>大小</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-org" title="全选 / 取消全选当前列表" onchange="selectFiltered('org', this.checked)" /></th><th>源文件</th><th>命中规则</th><th>目标位置</th><th>大小</th></tr></thead>
               <tbody id="org-tbody"><tr><td colspan="5" class="empty">暂无模拟预览结果。</td></tr></tbody>
             </table>
           </div>
@@ -744,6 +750,8 @@
           <h2>2. 未命中文件 · 按需 macOS Vision OCR / AI 智能分拣</h2>
           <div style="display:flex; gap:8px; align-items:center;">
             <button class="btn sm primary" id="btn-ai-triage" onclick="runAiTriage()">对未命中文件执行 OCR/AI 识别</button>
+            <button class="btn sm" onclick="selectFiltered('ai', true)">全选当前</button>
+            <button class="btn sm" onclick="selectFiltered('ai', false)">取消全选</button>
             <button class="btn sm primary" onclick="confirmApplyOrganize('ai')">确认移动并重命名</button>
           </div>
         </div>
@@ -759,7 +767,7 @@
           <div id="ai-unmatched-info" style="margin-bottom:8px; color:var(--muted);"></div>
           <div class="table-wrap" style="max-height:340px;">
             <table>
-              <thead><tr><th style="width:32px;"></th><th>当前文件</th><th>建议归类目录（可编辑）</th><th>建议文件名（可编辑）</th><th>识别依据与摘要</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-ai" title="全选 / 取消全选当前列表" onchange="selectFiltered('ai', this.checked)" /></th><th>当前文件</th><th>建议归类目录（可编辑）</th><th>建议文件名（可编辑）</th><th>识别依据与摘要</th></tr></thead>
               <tbody id="ai-tbody"><tr><td colspan="5" class="empty">运行上方「模拟预览」后，若存在未命中的杂乱文件或扫描版 PDF，点击「执行 OCR/AI 识别」生成可编辑预览。</td></tr></tbody>
             </table>
           </div>
@@ -1204,6 +1212,7 @@ function renderMole() {
   document.getElementById('mole-summary').textContent = `显示 ${list.length} 项 · 合计 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty">无匹配条目。</td></tr>';
+    syncSelectAllCheckbox('mole');
     return;
   }
   const maxSz = Math.max(1, ...list.slice(0, 400).map(x => x.sizeBytes));
@@ -1218,6 +1227,7 @@ function renderMole() {
       <td><button class="btn sm" onclick='revealPath(${JSON.stringify(item.path)})'>Finder</button></td>
     </tr>`;
   }).join('');
+  syncSelectAllCheckbox('mole');
 }
 
 async function whitelistMoleSelected() {
@@ -1278,6 +1288,7 @@ function renderOrphans() {
   document.getElementById('orphan-summary').textContent = `显示 ${list.length} 项 · 合计 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty">无匹配孤立项。</td></tr>';
+    syncSelectAllCheckbox('orphans');
     return;
   }
   const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
@@ -1292,6 +1303,7 @@ function renderOrphans() {
       <td><button class="btn sm" onclick='revealPath(${JSON.stringify(item.path)})'>Finder</button></td>
     </tr>`;
   }).join('');
+  syncSelectAllCheckbox('orphans');
 }
 
 /* ---- INSTALLED APPS & PURPOSE ---- */
@@ -1495,6 +1507,7 @@ function renderKondo() {
   document.getElementById('kondo-summary').textContent = `${list.length} 个工程 · 依赖占用 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="empty">无匹配工程。</td></tr>';
+    syncSelectAllCheckbox('kondo');
     return;
   }
   const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
@@ -1511,6 +1524,7 @@ function renderKondo() {
       <td><button class="btn sm" onclick='revealPath(${JSON.stringify(p.projectPath)})'>Finder</button></td>
     </tr>`;
   }).join('');
+  syncSelectAllCheckbox('kondo');
 }
 
 function applyAbandonedData(res, ts) {
@@ -1554,6 +1568,7 @@ function renderAbandoned() {
   document.getElementById('abandoned-summary').textContent = `显示 ${list.length} 个工程 · 共 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="empty">无匹配工程。</td></tr>';
+    syncSelectAllCheckbox('abandoned');
     return;
   }
   const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
@@ -1569,6 +1584,7 @@ function renderAbandoned() {
       <td><button class="btn sm" onclick='revealPath(${JSON.stringify(p.path)})'>Finder</button></td>
     </tr>`;
   }).join('');
+  syncSelectAllCheckbox('abandoned');
 }
 
 /* ---- DUPES ---- */
@@ -1709,6 +1725,7 @@ function renderBig() {
   const tbody = document.getElementById('big-tbody');
   if (!state.big.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无记录。</td></tr>';
+    syncSelectAllCheckbox('big');
     return;
   }
   const maxSz = Math.max(1, ...state.big.map(x => x.sizeBytes));
@@ -1723,6 +1740,7 @@ function renderBig() {
       <td><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
     </tr>`;
   }).join('');
+  syncSelectAllCheckbox('big');
 }
 
 /* ---- ORGANIZE & OCR ---- */
@@ -1769,6 +1787,7 @@ function renderOrgMoves() {
   const tbody = document.getElementById('org-tbody');
   if (!state.orgMoves.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">无规则命中文件。</td></tr>';
+    syncSelectAllCheckbox('org');
     return;
   }
   tbody.innerHTML = state.orgMoves.map(m => `
@@ -1780,6 +1799,7 @@ function renderOrgMoves() {
       <td>${esc(m.sizeHuman)}</td>
     </tr>
   `).join('');
+  syncSelectAllCheckbox('org');
 }
 
 async function runAiTriage() {
@@ -1816,6 +1836,7 @@ function renderAiSuggestions() {
   const tbody = document.getElementById('ai-tbody');
   if (!state.aiSuggestions.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">点击「对未命中文件执行 OCR/AI 识别」查看重命名与归档建议。</td></tr>';
+    syncSelectAllCheckbox('ai');
     return;
   }
   tbody.innerHTML = state.aiSuggestions.map((s, idx) => `
@@ -1827,6 +1848,7 @@ function renderAiSuggestions() {
       <td><div>${s.ocrUsed ? '<span class="tag blue">Vision OCR</span> ' : ''}${esc(s.basis)}</div><div style="font-size:11px;color:var(--muted);">${esc((s.excerptPreview || '').slice(0, 90))}</div></td>
     </tr>
   `).join('');
+  syncSelectAllCheckbox('ai');
 }
 
 function confirmApplyOrganize(kind) {
@@ -1892,26 +1914,51 @@ async function revertBatch(batchId) {
 }
 
 /* ---- SELECTION & INCREMENTAL CACHE PRUNE ---- */
+function visibleKeysForBucket(bucket) {
+  if (bucket === 'mole') return getFilteredMole().slice(0, 400).map(x => x.path);
+  if (bucket === 'orphans') return getFilteredOrphans().map(x => x.path);
+  if (bucket === 'kondo') return getFilteredKondo().map(p => p.artifactPaths.join('||'));
+  if (bucket === 'abandoned') return getFilteredAbandoned().map(p => p.path);
+  if (bucket === 'big') return state.big.map(f => f.path);
+  if (bucket === 'org') return state.orgMoves.map(m => m.srcPath);
+  if (bucket === 'ai') return state.aiSuggestions.map(s => s.srcPath);
+  return [];
+}
+
+function syncSelectAllCheckbox(bucket) {
+  const el = document.getElementById(`chk-all-${bucket}`);
+  if (!el) return;
+  const keys = visibleKeysForBucket(bucket);
+  const set = state.selected[bucket];
+  const selCount = keys.filter(k => set && set.has(k)).length;
+  el.checked = keys.length > 0 && selCount === keys.length;
+  el.indeterminate = selCount > 0 && selCount < keys.length;
+}
+
 function toggleSel(bucket, key, checked) {
   if (checked) state.selected[bucket].add(key);
   else state.selected[bucket].delete(key);
+  syncSelectAllCheckbox(bucket);
   updateFloatingBar();
 }
 
 function selectFiltered(bucket, select) {
   const set = state.selected[bucket];
   if (!select) { set.clear(); }
-  else if (bucket === 'mole') getFilteredMole().forEach(x => set.add(x.path));
-  else if (bucket === 'orphans') getFilteredOrphans().forEach(x => set.add(x.path));
-  else if (bucket === 'kondo') getFilteredKondo().forEach(p => set.add(p.artifactPaths.join('||')));
-  else if (bucket === 'abandoned') getFilteredAbandoned().forEach(p => set.add(p.path));
-  else if (bucket === 'org') state.orgMoves.forEach(m => set.add(m.srcPath));
+  else {
+    visibleKeysForBucket(bucket).forEach(k => set.add(k));
+  }
 
   if (bucket === 'mole') renderMole();
   if (bucket === 'orphans') renderOrphans();
   if (bucket === 'kondo') renderKondo();
   if (bucket === 'abandoned') renderAbandoned();
+  if (bucket === 'dupes') renderDupes();
+  if (bucket === 'images') renderImages();
+  if (bucket === 'big') renderBig();
   if (bucket === 'org') renderOrgMoves();
+  if (bucket === 'ai') renderAiSuggestions();
+  syncSelectAllCheckbox(bucket);
   updateFloatingBar();
 }
 
