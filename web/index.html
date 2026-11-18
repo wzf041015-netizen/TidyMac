@@ -6,65 +6,102 @@
 <title>TidyMac — 轻量 Mac 清理与文档整理工作台</title>
 <style>
   :root {
-    --bg: #f3f4f8;
+    --bg: #f5f5f7;
+    --sidebar-bg: rgba(246, 246, 249, 0.90);
     --surface: #ffffff;
-    --surface-2: #f8f9fc;
-    --border: #e5e7eb;
-    --text: #111827;
-    --muted: #6b7280;
+    --surface-elevated: #ffffff;
+    --surface-2: #f2f2f7;
+    --control-track: rgba(118, 118, 128, 0.12);
+    --segment-active: #ffffff;
+    --glass: rgba(245, 245, 247, 0.78);
+    --hairline: rgba(0, 0, 0, 0.08);
+    --hairline-strong: rgba(0, 0, 0, 0.14);
+    --border: rgba(0, 0, 0, 0.08);
+    --text: #1d1d1f;
+    --text-secondary: #424245;
+    --muted: #86868b;
     --accent: #0071e3;
+    --accent-hover: #0077ed;
     --accent-soft: rgba(0, 113, 227, 0.11);
-    --green: #15803d;
-    --green-soft: rgba(21, 128, 61, 0.11);
-    --amber: #b45309;
-    --amber-soft: rgba(180, 83, 9, 0.12);
-    --red: #b91c1c;
-    --red-soft: rgba(185, 28, 28, 0.11);
-    --purple: #6d28d9;
-    --teal: #0d9488;
-    --radius: 13px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
+    --accent-ring: rgba(0, 113, 227, 0.28);
+    --green: #248a3d;
+    --green-soft: rgba(52, 199, 89, 0.14);
+    --amber: #b25000;
+    --amber-soft: rgba(255, 159, 10, 0.15);
+    --red: #d70015;
+    --red-solid: #ff3b30;
+    --red-soft: rgba(255, 59, 48, 0.12);
+    --purple: #8944ab;
+    --purple-soft: rgba(175, 82, 222, 0.12);
+    --teal: #0071a4;
+    --teal-soft: rgba(48, 176, 199, 0.14);
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+    --shadow-float: 0 16px 40px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0f1117;
-      --surface: #181b23;
-      --surface-2: #1f232e;
-      --border: #2c3140;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-      --accent: #3b99fc;
-      --accent-soft: rgba(59, 153, 252, 0.17);
-      --green: #4ade80;
-      --green-soft: rgba(74, 222, 128, 0.14);
-      --amber: #fbbf24;
-      --amber-soft: rgba(251, 191, 36, 0.15);
-      --red: #f87171;
-      --red-soft: rgba(248, 113, 113, 0.15);
-      --purple: #a78bfa;
-      --teal: #2dd4bf;
-      --shadow: 0 2px 10px rgba(0,0,0,0.35);
+      --bg: #121214;
+      --sidebar-bg: rgba(26, 26, 29, 0.90);
+      --surface: #1c1c1e;
+      --surface-elevated: #242426;
+      --surface-2: #2c2c2e;
+      --control-track: rgba(118, 118, 128, 0.24);
+      --segment-active: #3a3a3c;
+      --glass: rgba(22, 22, 24, 0.78);
+      --hairline: rgba(255, 255, 255, 0.08);
+      --hairline-strong: rgba(255, 255, 255, 0.16);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f5f5f7;
+      --text-secondary: #d1d1d6;
+      --muted: #98989d;
+      --accent: #0a84ff;
+      --accent-hover: #409cff;
+      --accent-soft: rgba(10, 132, 255, 0.18);
+      --accent-ring: rgba(10, 132, 255, 0.36);
+      --green: #30d158;
+      --green-soft: rgba(48, 209, 88, 0.16);
+      --amber: #ff9f0a;
+      --amber-soft: rgba(255, 159, 10, 0.17);
+      --red: #ff6961;
+      --red-solid: #ff453a;
+      --red-soft: rgba(255, 69, 58, 0.17);
+      --purple: #bf5af2;
+      --purple-soft: rgba(191, 90, 242, 0.17);
+      --teal: #64d2ff;
+      --teal-soft: rgba(100, 210, 255, 0.16);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 28px rgba(0, 0, 0, 0.22);
+      --shadow-float: 0 20px 50px rgba(0, 0, 0, 0.56), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
     }
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
     background: var(--bg);
     color: var(--text);
     font-size: 13px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv05" 1;
+  }
+  .num, .pill, .card-val, .size-cell, .badge, .hero-val {
+    font-variant-numeric: tabular-nums;
   }
   .app-shell {
     display: grid;
-    grid-template-columns: 272px 1fr;
+    grid-template-columns: 258px minmax(0, 1fr);
     min-height: 100vh;
   }
+
+  /* macOS Source-List Sidebar */
   .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 18px 14px;
+    background: var(--sidebar-bg);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border-right: 1px solid var(--hairline);
+    padding: 18px 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -75,30 +112,43 @@
   .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 4px 6px;
+    gap: 11px;
+    padding: 4px 8px 6px;
   }
   .brand-logo {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, #063970, #0d9488);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(155deg, #0b2d59 0%, #0071e3 52%, #19c3a6 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 4px 12px rgba(0, 113, 227, 0.28);
   }
-  .brand h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
-  .brand p { margin: 1px 0 0; font-size: 11px; color: var(--muted); }
-  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .brand h1 {
+    margin: 0;
+    font-size: 15.5px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .brand p { margin: 2px 0 0; font-size: 11px; color: var(--muted); letter-spacing: -0.005em; }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-section {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 10px 10px 4px;
+    letter-spacing: 0.02em;
+  }
   .nav button {
     border: 0;
     background: transparent;
-    color: var(--text);
+    color: var(--text-secondary);
     text-align: left;
-    padding: 9px 10px;
+    padding: 8px 10px;
     border-radius: 9px;
     cursor: pointer;
     font-size: 13px;
@@ -107,231 +157,455 @@
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    transition: background 0.14s, color 0.14s;
+    transition: background 0.16s ease, color 0.14s ease, transform 0.1s ease;
   }
-  .nav button .nav-left { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap; }
-  .nav button svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.78; }
-  .nav button:hover { background: var(--surface-2); }
-  .nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-  .nav button.active svg { opacity: 1; }
+  .nav button .nav-left { display: flex; align-items: center; gap: 9px; min-width: 0; white-space: nowrap; }
+  .nav button svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.72; color: var(--accent); transition: opacity 0.15s, color 0.15s; }
+  .nav button:hover { background: var(--control-track); color: var(--text); }
+  .nav button.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .nav button.active svg { opacity: 1; color: var(--accent); }
   .pill {
     font-size: 11px;
-    padding: 1px 7px;
+    font-weight: 600;
+    padding: 2px 7px;
     border-radius: 999px;
-    background: var(--surface-2);
+    background: var(--control-track);
     color: var(--muted);
-    border: 1px solid var(--border);
     white-space: nowrap;
   }
-  .nav button.active .pill { background: var(--accent); color: #fff; border-color: transparent; }
+  .nav button.active .pill { background: var(--accent); color: #fff; }
   .sidebar-footer {
     margin-top: auto;
     padding: 11px 12px;
-    border-radius: 10px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--control-track);
+    border: 1px solid var(--hairline);
     font-size: 11.5px;
     color: var(--muted);
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
   }
-  .main { padding: 20px 26px 88px; max-width: 1340px; width: 100%; }
+  .sidebar-footer strong {
+    color: var(--text);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Main Canvas & Sticky Frosted Topbar */
+  .main-wrap { min-width: 0; display: flex; flex-direction: column; }
   .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--glass);
+    backdrop-filter: saturate(180%) blur(22px);
+    -webkit-backdrop-filter: saturate(180%) blur(22px);
+    border-bottom: 1px solid var(--hairline);
+    padding: 12px 26px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
   }
-  .status-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .topbar-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .page-heading {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .status-strip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 3px 10px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 500;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--control-track);
+    color: var(--text-secondary);
+    border: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+  .badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
   }
   .badge.ok { color: var(--green); background: var(--green-soft); border-color: transparent; }
+  .badge.ok::before { background: var(--green); }
   .badge.warn { color: var(--amber); background: var(--amber-soft); border-color: transparent; }
+  .badge.warn::before { background: var(--amber); }
   .badge.info { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .badge.info::before { background: var(--accent); }
+
+  .main { padding: 20px 26px 96px; max-width: 1360px; width: 100%; }
+
+  /* Apple Buttons */
   .btn {
-    border: 1px solid var(--border);
+    border: 1px solid var(--hairline-strong);
     background: var(--surface);
     color: var(--text);
-    padding: 7px 13px;
-    border-radius: 8px;
+    padding: 7px 14px;
+    border-radius: 9px;
     font-size: 12.5px;
     font-weight: 500;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    transition: transform 0.08s, filter 0.14s;
+    white-space: nowrap;
+    transition: background 0.15s ease, filter 0.15s ease, transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.15s ease;
   }
-  .btn:hover:not(:disabled) { filter: brightness(0.96); }
-  .btn:active:not(:disabled) { transform: scale(0.985); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
-  .btn.danger { background: var(--red); color: #fff; border-color: transparent; }
-  .btn.sm { padding: 4px 10px; font-size: 11.5px; border-radius: 6px; }
+  .btn:hover:not(:disabled) { background: var(--surface-2); }
+  .btn:active:not(:disabled) { transform: scale(0.975); }
+  .btn:disabled { opacity: 0.48; cursor: not-allowed; }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: transparent;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 113, 227, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  .btn.primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn.pill-cta { border-radius: 999px; padding: 8px 18px; font-size: 13px; }
+  .btn.danger {
+    background: var(--red-solid);
+    color: #fff;
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .btn.danger:hover:not(:disabled) { filter: brightness(1.06); }
+  .btn.sm { padding: 5px 11px; font-size: 12px; border-radius: 7px; background: var(--surface-2); border-color: var(--hairline); }
+  .btn.sm:hover:not(:disabled) { filter: brightness(0.95); }
+  .btn.sm.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  .btn.sm.danger { background: var(--red-solid); color: #fff; border-color: transparent; }
 
   .progress-card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--hairline);
     border-radius: var(--radius);
-    padding: 12px 16px;
-    margin-bottom: 16px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
     box-shadow: var(--shadow);
   }
   .progress-track {
-    height: 7px;
-    background: var(--surface-2);
+    height: 6px;
+    background: var(--control-track);
     border-radius: 999px;
     overflow: hidden;
-    margin-top: 8px;
+    margin-top: 9px;
   }
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent), var(--teal));
-    transition: width 0.25s ease;
+    transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     width: 0%;
   }
 
+  /* Apple Bento Hero Storage Card */
+  .hero-bento {
+    background:
+      radial-gradient(620px 200px at 8% 0%, var(--accent-soft), transparent 70%),
+      radial-gradient(520px 220px at 95% 15%, var(--teal-soft), transparent 70%),
+      var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .hero-kicker { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 4px; letter-spacing: 0.01em; }
+  .hero-val {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  }
+  .hero-meta { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .hero-meta strong { color: var(--text); font-weight: 600; }
+
   .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
   .card {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 15px 16px;
     box-shadow: var(--shadow);
     cursor: pointer;
-    transition: border-color 0.15s, transform 0.12s;
+    transition: border-color 0.16s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease;
   }
-  .card:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .card-title { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .card-title > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .card-val { font-size: 23px; font-weight: 700; letter-spacing: -0.4px; }
-  .card-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .card:hover {
+    border-color: var(--accent-ring);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
+  }
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .card-title-row { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .bento-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .bento-icon.blue { background: var(--accent-soft); color: var(--accent); }
+  .bento-icon.amber { background: var(--amber-soft); color: var(--amber); }
+  .bento-icon.teal { background: var(--teal-soft); color: var(--teal); }
+  .bento-icon.purple { background: var(--purple-soft); color: var(--purple); }
+  .bento-icon.green { background: var(--green-soft); color: var(--green); }
+  .card-title { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chevron { color: var(--muted); font-size: 15px; line-height: 1; transition: transform 0.16s ease, color 0.16s ease; flex-shrink: 0; }
+  .card:hover .chevron { transform: translateX(2px); color: var(--accent); }
+  .card-val { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+  .card-sub { font-size: 11.5px; color: var(--muted); margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .breakdown-bar {
-    height: 12px;
+    height: 10px;
     border-radius: 999px;
-    background: var(--surface-2);
+    background: var(--control-track);
     overflow: hidden;
     display: flex;
     gap: 2px;
-    margin: 10px 0 8px;
+    margin: 4px 0 11px;
   }
-  .breakdown-seg { height: 100%; transition: width 0.3s ease; }
-  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: var(--muted); }
-  .legend-dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+  .breakdown-seg { height: 100%; transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+  .breakdown-seg:first-child { border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
+  .breakdown-seg:last-child { border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
+  .legend strong { color: var(--text); font-weight: 600; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
 
+  /* Panels & Native macOS Segmented Controls */
   .panel {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
     box-shadow: var(--shadow);
     overflow: hidden;
     margin-bottom: 16px;
   }
   .panel-head {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--hairline);
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
     justify-content: space-between;
   }
-  .panel-head h2 { margin: 0; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .panel-body { padding: 14px 16px; }
-  .subtabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .panel-head h2 {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-body { padding: 15px 18px; }
+  .subtabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 11px;
+    background: var(--control-track);
+    border: 1px solid var(--hairline);
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
   .subtabs button {
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    padding: 6px 12px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 14px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 12.5px;
     font-weight: 500;
+    transition: background 0.18s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease, box-shadow 0.18s ease;
   }
-  .subtabs button.active { background: var(--accent); color: #fff; border-color: transparent; }
-  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .subtabs button:hover:not(.active) { color: var(--text); }
+  .subtabs button.active {
+    background: var(--segment-active);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18), 0 0 0 0.5px var(--hairline);
+  }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
   input[type="text"], input[type="search"], select {
     background: var(--surface-2);
-    border: 1px solid var(--border);
+    border: 1px solid var(--hairline);
     color: var(--text);
-    padding: 6px 10px;
-    border-radius: 7px;
+    padding: 7px 11px;
+    border-radius: 8px;
     font-size: 12.5px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="text"]:focus, input[type="search"]:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+  input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    vertical-align: middle;
   }
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  th { font-weight: 600; color: var(--muted); background: var(--surface-2); position: sticky; top: 0; z-index: 2; }
-  tr:hover td { background: var(--surface-2); }
+  th, td {
+    text-align: left;
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: middle;
+  }
+  th {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface-elevated);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr { transition: background 0.12s ease; }
+  tbody tr:hover td { background: var(--control-track); }
+  .nowrap-col { white-space: nowrap; }
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; word-break: break-all; }
-  .size-cell { min-width: 96px; }
-  .size-bar { height: 4px; border-radius: 999px; background: var(--surface-2); margin-top: 4px; overflow: hidden; }
+  .size-cell { min-width: 104px; white-space: nowrap; }
+  .size-bar { height: 4px; border-radius: 999px; background: var(--control-track); margin-top: 5px; overflow: hidden; }
   .size-bar > div { height: 100%; background: var(--accent); border-radius: 999px; }
   .tag {
-    display: inline-block;
-    padding: 2px 7px;
-    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
     font-size: 11px;
     font-weight: 500;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
+    background: var(--control-track);
+    color: var(--text-secondary);
+    border: 1px solid var(--hairline);
     white-space: nowrap;
     flex-shrink: 0;
   }
   .tag.keep { background: var(--green-soft); color: var(--green); border-color: transparent; }
   .tag.warn { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
   .tag.blue { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-  .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: 9px; }
-  .group-card { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
-  .group-head { background: var(--surface-2); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; }
-  .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
-  .banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .banner.warn { background: var(--amber-soft); color: var(--amber); }
+  .table-wrap { max-height: 540px; overflow: auto; border: 1px solid var(--hairline); border-radius: 12px; }
+  .group-card { border: 1px solid var(--hairline); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .group-head { background: var(--surface-2); padding: 9px 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; }
+  .empty { padding: 32px 16px; text-align: center; color: var(--muted); }
+  .banner { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .banner.warn { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--hairline); }
 
+  /* Apple Glass Floating Capsule & Sheet Modal */
   .floating-bar {
     position: fixed;
-    bottom: 18px;
-    left: calc(272px + (100% - 272px) / 2);
+    bottom: 20px;
+    left: calc(258px + (100% - 258px) / 2);
     transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    border-radius: 12px;
-    padding: 9px 14px;
+    background: var(--glass);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border: 1px solid var(--hairline-strong);
+    box-shadow: var(--shadow-float);
+    border-radius: 999px;
+    padding: 8px 10px 8px 18px;
     display: none;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     z-index: 900;
   }
   .floating-bar.show { display: flex; }
+  .floating-bar .btn.sm { border-radius: 999px; padding: 6px 13px; }
 
-  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.44);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
   .modal-backdrop.show { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 600px; width: 100%; padding: 18px 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-  .modal h3 { margin: 0 0 8px; font-size: 16px; }
-  .modal-list { max-height: 240px; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 10px 0 14px; font-size: 11.5px; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 18px;
+    max-width: 600px;
+    width: 100%;
+    padding: 22px 24px;
+    box-shadow: var(--shadow-float);
+  }
+  .modal h3 { margin: 0 0 8px; font-size: 16.5px; font-weight: 700; letter-spacing: -0.02em; }
+  .modal-list { max-height: 240px; overflow: auto; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 10px; padding: 10px 12px; margin: 12px 0 16px; font-size: 11.5px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
-  .toast { position: fixed; right: 20px; bottom: 20px; background: #1f2937; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); display: none; z-index: 1100; max-width: 420px; }
+  .toast {
+    position: fixed;
+    right: 20px;
+    bottom: 22px;
+    background: var(--surface-elevated);
+    color: var(--text);
+    border: 1px solid var(--hairline-strong);
+    padding: 10px 15px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    box-shadow: var(--shadow-float);
+    display: none;
+    z-index: 1100;
+    max-width: 420px;
+  }
   .toast.show { display: block; }
   .hidden { display: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; }
+  }
 </style>
 </head>
 <body>
@@ -339,9 +613,9 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-logo">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <path d="M8 13h8M8 16h5"/>
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/>
+          <path d="M18.5 14l.8 2.2L21.5 17l-2.2.8-.8 2.2-.8-2.2L15.5 17l2.2-.8z"/>
         </svg>
       </div>
       <div>
@@ -351,44 +625,49 @@
     </div>
 
     <nav class="nav" id="nav">
+      <div class="nav-section">概览与体检</div>
       <button data-tab="overview" class="active">
         <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
           <span>只读体检总览</span>
         </span>
         <span class="pill" id="pill-overview">就绪</span>
       </button>
+
+      <div class="nav-section">空间分析与清理</div>
       <button data-tab="system">
         <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
           <span>系统残留 &amp; 孤立配置</span>
         </span>
         <span class="pill" id="pill-system">-</span>
       </button>
       <button data-tab="apps">
         <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
           <span>所有应用 &amp; 关联空间</span>
         </span>
         <span class="pill" id="pill-apps">-</span>
       </button>
       <button data-tab="projects">
         <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           <span>AI 试水项目 &amp; 依赖</span>
         </span>
         <span class="pill" id="pill-projects">-</span>
       </button>
       <button data-tab="dupes">
         <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           <span>文档查重 &amp; 大文件</span>
         </span>
         <span class="pill" id="pill-dupes">-</span>
       </button>
+
+      <div class="nav-section">智能整理</div>
       <button data-tab="organize">
         <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           <span>自动归档 &amp; OCR分拣</span>
         </span>
         <span class="pill" id="pill-organize">-</span>
@@ -396,108 +675,147 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div><strong>安全与缓存策略</strong></div>
-      <div>• 自动恢复上次体检快照</div>
-      <div>• 清理后增量更新缓存，无需重扫</div>
-      <div>• 所有删除默认移入废纸篓</div>
+      <strong>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        废纸篓与只读保护
+      </strong>
+      <div>自动恢复缓存 · 清理后局部增量更新 · 所有删除默认进入 macOS 废纸篓</div>
     </div>
   </aside>
 
-  <main class="main">
-    <div class="topbar">
-      <div class="status-strip">
-        <span class="badge" id="disk-badge">磁盘可用: 检测中...</span>
-        <span class="badge info" id="reclaim-badge">可释放空间: 0 B</span>
-        <span class="badge" id="cache-badge">缓存状态: 检查中...</span>
-        <span class="badge" id="fda-badge">权限检测中...</span>
+  <div class="main-wrap">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 class="page-heading" id="page-heading">只读体检总览</h2>
+        <div class="status-strip">
+          <span class="badge" id="disk-badge">磁盘可用: 检测中...</span>
+          <span class="badge info" id="reclaim-badge">可释放空间: 0 B</span>
+          <span class="badge" id="cache-badge">缓存状态: 检查中...</span>
+          <span class="badge" id="fda-badge">权限检测中...</span>
+        </div>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn primary" id="btn-full-checkup" onclick="startCheckup()">重新只读体检 (Dry-Run)</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn primary pill-cta" id="btn-full-checkup" onclick="startCheckup()">重新只读体检 (Dry-Run)</button>
       </div>
-    </div>
+    </header>
 
-    <div id="checkup-progress-card" class="progress-card hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <strong id="checkup-progress-title">正在并行运行只读体检...</strong>
-        <span id="checkup-progress-count" style="color:var(--muted);">0 / 8</span>
+    <main class="main">
+      <div id="checkup-progress-card" class="progress-card hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong id="checkup-progress-title">正在并行运行只读体检...</strong>
+          <span id="checkup-progress-count" class="num" style="color:var(--muted);">0 / 9</span>
+        </div>
+        <div id="checkup-progress-sub" style="font-size:12px; color:var(--muted); margin-top:3px;"></div>
+        <div class="progress-track"><div class="progress-fill" id="checkup-progress-fill"></div></div>
       </div>
-      <div id="checkup-progress-sub" style="font-size:12px; color:var(--muted); margin-top:3px;"></div>
-      <div class="progress-track"><div class="progress-fill" id="checkup-progress-fill"></div></div>
-    </div>
 
-    <div id="fda-banner" class="banner warn hidden">
-      <div>
-        <strong>权限说明：</strong>未检测到「完全磁盘访问权限」（仅影响 Mole 扫描废纸篓与 Safari/Mail 缓存，其余清理与整理均正常）。<br />
-        <span style="font-size:11.5px; opacity:0.9;">若你已在系统设置里打开过 TidyMac 开关：因为桌面版刚更新过本地签名，请先在系统设置列表选中 <strong>TidyMac</strong> 点左下角 <strong>「-」移除</strong>，再点 <strong>「+」重新添加</strong> 并按 <strong>⌘Q 完全退出后重开</strong> 即可生效。</span>
-      </div>
-      <div style="display:flex; gap:6px; flex-shrink:0;">
-        <button class="btn sm" onclick="loadStatus(true)">重新检测</button>
-        <button class="btn sm" onclick="openFdaSettings()">前往系统设置</button>
-      </div>
-    </div>
-
-    <!-- TAB 1: OVERVIEW -->
-    <section id="tab-overview">
-      <div class="cards-grid">
-        <div class="card" onclick="jumpTo('system','sys-mole')">
-          <div class="card-title"><span>Mole 安全缓存与残留</span><span class="tag">点击查看</span></div>
-          <div class="card-val" id="ov-mole-val">待扫描</div>
-          <div class="card-sub" id="ov-mole-sub">点击体检或进入按需扫描</div>
+      <div id="fda-banner" class="banner warn hidden">
+        <div>
+          <strong>权限说明：</strong>未检测到「完全磁盘访问权限」（仅影响 Mole 扫描废纸篓与 Safari/Mail 缓存，其余清理与整理均正常）。<br />
+          <span style="font-size:11.5px; opacity:0.9;">若你已在系统设置里打开过 TidyMac 开关：因为桌面版刚更新过本地签名，请先在系统设置列表选中 <strong>TidyMac</strong> 点左下角 <strong>「-」移除</strong>，再点 <strong>「+」重新添加</strong> 并按 <strong>⌘Q 完全退出后重开</strong> 即可生效。</span>
         </div>
-        <div class="card" onclick="jumpTo('system','sys-orphans')">
-          <div class="card-title"><span>Pearcleaner 孤立配置</span><span class="tag">点击查看</span></div>
-          <div class="card-val" id="ov-orphan-val">待扫描</div>
-          <div class="card-sub" id="ov-orphan-sub">无主 Preferences / Support / Containers</div>
-        </div>
-        <div class="card" onclick="activateTab('apps')">
-          <div class="card-title"><span>所有应用 &amp; 关联占用</span><span class="tag">点击查看</span></div>
-          <div class="card-val" id="ov-apps-val">待扫描</div>
-          <div class="card-sub" id="ov-apps-sub">查看应用用处、缓存与数据分布</div>
-        </div>
-        <div class="card" onclick="jumpTo('projects','proj-kondo')">
-          <div class="card-title"><span>kondo 工程依赖产物</span><span class="tag">点击查看</span></div>
-          <div class="card-val" id="ov-kondo-val">待扫描</div>
-          <div class="card-sub" id="ov-kondo-sub">只清 node_modules/.venv/target，保留源码</div>
-        </div>
-        <div class="card" onclick="jumpTo('dupes','dup-exact')">
-          <div class="card-title"><span>czkawka 文档查重 &amp; 相似图</span><span class="tag">点击查看</span></div>
-          <div class="card-val" id="ov-dupes-val">待扫描</div>
-          <div class="card-sub" id="ov-dupes-sub">Documents / Downloads / Desktop</div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button class="btn sm" onclick="loadStatus(true)">重新检测</button>
+          <button class="btn sm" onclick="openFdaSettings()">前往系统设置</button>
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>可释放空间构成分布</h2>
-          <span id="breakdown-total" style="color:var(--muted); font-size:12px;">-</span>
-        </div>
-        <div class="panel-body">
+      <!-- TAB 1: OVERVIEW -->
+      <section id="tab-overview">
+        <div class="hero-bento">
+          <div class="hero-top">
+            <div>
+              <div class="hero-kicker">macOS 储存空间体检摘要 · DRY-RUN</div>
+              <div class="hero-val" id="hero-reclaim-val">0 B</div>
+            </div>
+            <div class="hero-meta">
+              <div id="hero-disk-sub">正在检测磁盘可用容量...</div>
+              <div>可释放总计：<strong id="breakdown-total">-</strong>（不含未勾选的大文件与工程整包）</div>
+            </div>
+          </div>
           <div class="breakdown-bar" id="breakdown-bar"></div>
-          <div class="legend" id="breakdown-legend">暂无扫描数据，点击上方「重新只读体检」即可生成。</div>
+          <div class="legend" id="breakdown-legend">暂无扫描数据，点击右上角「重新只读体检 (Dry-Run)」即可生成。</div>
         </div>
-      </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>磁盘大目录透视（集成 Mole Analyze）</h2>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <input type="text" id="analyze-path" value="~/Library" style="width:240px;" />
-            <button class="btn sm" onclick="runMoleAnalyze()">透视目录占用</button>
+        <div class="cards-grid">
+          <div class="card" onclick="jumpTo('system','sys-mole')">
+            <div class="card-head">
+              <div class="card-title-row">
+                <span class="bento-icon blue"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></span>
+                <span class="card-title">Mole 安全缓存与残留</span>
+              </div>
+              <span class="chevron">›</span>
+            </div>
+            <div class="card-val" id="ov-mole-val">待扫描</div>
+            <div class="card-sub" id="ov-mole-sub">点击体检或进入按需扫描</div>
+          </div>
+          <div class="card" onclick="jumpTo('system','sys-orphans')">
+            <div class="card-head">
+              <div class="card-title-row">
+                <span class="bento-icon amber"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                <span class="card-title">Pearcleaner 孤立配置</span>
+              </div>
+              <span class="chevron">›</span>
+            </div>
+            <div class="card-val" id="ov-orphan-val">待扫描</div>
+            <div class="card-sub" id="ov-orphan-sub">无主 Preferences / Support / Containers</div>
+          </div>
+          <div class="card" onclick="activateTab('apps')">
+            <div class="card-head">
+              <div class="card-title-row">
+                <span class="bento-icon green"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></span>
+                <span class="card-title">所有应用 &amp; 关联占用</span>
+              </div>
+              <span class="chevron">›</span>
+            </div>
+            <div class="card-val" id="ov-apps-val">待扫描</div>
+            <div class="card-sub" id="ov-apps-sub">查看应用用处、缓存与数据分布</div>
+          </div>
+          <div class="card" onclick="jumpTo('projects','proj-kondo')">
+            <div class="card-head">
+              <div class="card-title-row">
+                <span class="bento-icon teal"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+                <span class="card-title">kondo 工程依赖产物</span>
+              </div>
+              <span class="chevron">›</span>
+            </div>
+            <div class="card-val" id="ov-kondo-val">待扫描</div>
+            <div class="card-sub" id="ov-kondo-sub">只清 node_modules/.venv/target，保留源码</div>
+          </div>
+          <div class="card" onclick="jumpTo('dupes','dup-exact')">
+            <div class="card-head">
+              <div class="card-title-row">
+                <span class="bento-icon purple"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
+                <span class="card-title">czkawka 文档查重 &amp; 相似图</span>
+              </div>
+              <span class="chevron">›</span>
+            </div>
+            <div class="card-val" id="ov-dupes-val">待扫描</div>
+            <div class="card-sub" id="ov-dupes-sub">Documents / Downloads / Desktop</div>
           </div>
         </div>
-        <div class="panel-body" id="analyze-result">
-          <div class="empty">点击「透视目录占用」，调用 <span class="mono">mo analyze --json</span> 查看真实大目录与大文件排行。</div>
-        </div>
-      </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>开源引擎与本机组件状态</h2>
-          <button class="btn sm" onclick="loadStatus(true)">刷新状态</button>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>磁盘大目录透视（集成 Mole Analyze）</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="text" id="analyze-path" value="~/Library" style="width:240px;" />
+              <button class="btn sm" onclick="runMoleAnalyze()">透视目录占用</button>
+            </div>
+          </div>
+          <div class="panel-body" id="analyze-result">
+            <div class="empty">点击「透视目录占用」，调用 <span class="mono">mo analyze --json</span> 查看真实大目录与大文件排行。</div>
+          </div>
         </div>
-        <div class="panel-body" id="engine-status-body">检测中...</div>
-      </div>
-    </section>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>开源引擎与本机组件状态</h2>
+            <button class="btn sm" onclick="loadStatus(true)">刷新状态</button>
+          </div>
+          <div class="panel-body" id="engine-status-body">检测中...</div>
+        </div>
+      </section>
 
     <!-- TAB 2: SYSTEM RESIDUALS (MOLE + PEARCLEANER) -->
     <section id="tab-system" class="hidden">
@@ -644,7 +962,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-abandoned" title="全选 / 取消全选当前列表" onchange="selectFiltered('abandoned', this.checked)" /></th><th>工程</th><th>来源</th><th>Git / 闲置天数</th><th style="width:120px;">总体积</th><th>判定依据</th><th style="width:80px;">操作</th></tr></thead>
+              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-abandoned" title="全选 / 取消全选当前列表" onchange="selectFiltered('abandoned', this.checked)" /></th><th>工程</th><th style="width:128px;">来源</th><th style="width:155px;">Git / 闲置天数</th><th style="width:116px;">总体积</th><th style="min-width:190px;">判定依据</th><th style="width:74px;">操作</th></tr></thead>
               <tbody id="abandoned-tbody"><tr><td colspan="7" class="empty">点击「重新扫描半成品」分析 Codex / DeepSeek / Kimi / Cursor 等实验项目。</td></tr></tbody>
             </table>
           </div>
@@ -783,6 +1101,7 @@
       </div>
     </section>
   </main>
+  </div>
 </div>
 
 <div class="floating-bar" id="floating-bar">
@@ -885,6 +1204,10 @@ function activateTab(tab) {
   state.activeTab = tab;
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('main > section').forEach(sec => sec.classList.toggle('hidden', sec.id !== `tab-${tab}`));
+  const activeBtn = document.querySelector(`#nav button[data-tab="${tab}"] .nav-left span`);
+  if (activeBtn) {
+    document.getElementById('page-heading').textContent = activeBtn.textContent.trim();
+  }
   updateFloatingBar();
 }
 
@@ -974,26 +1297,28 @@ function trashCurrentBucket() {
 
 function updateTopTotals() {
   const total = state.totals.mole + state.totals.orphans + state.totals.kondo + state.totals.dupes + state.totals.images;
-  document.getElementById('reclaim-badge').textContent = `可释放空间: ${humanBytes(total)}`;
-  document.getElementById('pill-overview').textContent = total ? humanBytes(total) : '就绪';
+  const h = humanBytes(total);
+  document.getElementById('reclaim-badge').textContent = `可释放空间: ${h}`;
+  document.getElementById('hero-reclaim-val').textContent = h;
+  document.getElementById('pill-overview').textContent = total ? h : '就绪';
   renderBreakdown(total);
 }
 
 function renderBreakdown(total) {
   const bar = document.getElementById('breakdown-bar');
   const legend = document.getElementById('breakdown-legend');
-  document.getElementById('breakdown-total').textContent = total ? `总计 ${humanBytes(total)}` : '-';
+  document.getElementById('breakdown-total').textContent = total ? humanBytes(total) : '-';
   if (!total) {
     bar.innerHTML = '';
-    legend.textContent = '暂无扫描数据，点击上方「重新只读体检」即可生成。';
+    legend.textContent = '暂无扫描数据，点击右上角「重新只读体检 (Dry-Run)」即可生成。';
     return;
   }
   const segs = [
-    { label: 'Mole 缓存', val: state.totals.mole, color: '#0071e3' },
-    { label: 'kondo 工程依赖', val: state.totals.kondo, color: '#0d9488' },
-    { label: '文档查重副本', val: state.totals.dupes, color: '#6d28d9' },
-    { label: '相似图片', val: state.totals.images, color: '#d97706' },
-    { label: 'Pearcleaner 孤立配置', val: state.totals.orphans, color: '#dc2626' },
+    { label: 'Mole 缓存', val: state.totals.mole, color: 'var(--accent)' },
+    { label: 'kondo 工程依赖', val: state.totals.kondo, color: 'var(--teal)' },
+    { label: '文档查重副本', val: state.totals.dupes, color: 'var(--purple)' },
+    { label: '相似图片', val: state.totals.images, color: 'var(--amber)' },
+    { label: 'Pearcleaner 孤立配置', val: state.totals.orphans, color: 'var(--red-solid)' },
   ].filter(s => s.val > 0);
 
   bar.innerHTML = segs.map(s => {
@@ -1038,6 +1363,7 @@ async function loadInitialCache() {
     const cached = await api('/api/cache');
     if (cached.disk) {
       document.getElementById('disk-badge').textContent = `磁盘可用: ${cached.disk.freeHuman} / ${cached.disk.totalHuman}`;
+      document.getElementById('hero-disk-sub').innerHTML = `Macintosh HD · 可用 <strong>${esc(cached.disk.freeHuman)}</strong> / 总容量 ${esc(cached.disk.totalHuman)}`;
     }
     applyCachedPayload(cached);
   } catch (e) {}
@@ -1047,6 +1373,7 @@ async function loadStatus(forceToast = false) {
   try {
     const data = await api('/api/status');
     document.getElementById('disk-badge').textContent = `磁盘可用: ${data.disk.freeHuman} / ${data.disk.totalHuman}`;
+    document.getElementById('hero-disk-sub').innerHTML = `Macintosh HD · 可用 <strong>${esc(data.disk.freeHuman)}</strong> / 总容量 ${esc(data.disk.totalHuman)}`;
     const fda = data.permissions.fullDiskAccess;
     const fdaBadge = document.getElementById('fda-badge');
     fdaBadge.textContent = fda ? '完全磁盘访问: 已授权' : '完全磁盘访问: 未授权';
@@ -1104,7 +1431,7 @@ async function startCheckup() {
         const p = await api('/api/checkup/progress');
         const st = p.state;
         const done = st.completed.length;
-        const tot = st.total || 8;
+        const tot = st.total || 9;
         document.getElementById('checkup-progress-count').textContent = `${done} / ${tot}`;
         document.getElementById('checkup-progress-fill').style.width = `${Math.round((done / tot) * 100)}%`;
         document.getElementById('checkup-progress-sub').textContent = st.pending.length
@@ -1516,12 +1843,12 @@ function renderKondo() {
     const pct = Math.max(2, Math.round((p.sizeBytes / maxSz) * 100));
     return `<tr>
       <td><input type="checkbox" ${state.selected.kondo.has(key) ? 'checked' : ''} onchange="toggleSel('kondo', ${JSON.stringify(key)}, this.checked)" /></td>
-      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted);">${esc(p.projectPath)}</div></td>
-      <td><span class="tag">${esc(p.projectType)}</span></td>
-      <td>${esc(p.lastActiveText)}</td>
-      <td>${p.artifacts.map(a => `<span class="tag blue">${esc(a.name)} (${esc(a.sizeHuman)})</span>`).join(' ')}</td>
+      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted); margin-top:2px;">${esc(p.projectPath)}</div></td>
+      <td class="nowrap-col"><span class="tag">${esc(p.projectType)}</span></td>
+      <td class="nowrap-col" style="color:var(--muted);">${esc(p.lastActiveText)}</td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${p.artifacts.map(a => `<span class="tag blue">${esc(a.name)} (${esc(a.sizeHuman)})</span>`).join('')}</div></td>
       <td class="size-cell"><strong>${esc(p.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(p.projectPath)})'>Finder</button></td>
+      <td class="nowrap-col"><button class="btn sm" onclick='revealPath(${JSON.stringify(p.projectPath)})'>Finder</button></td>
     </tr>`;
   }).join('');
   syncSelectAllCheckbox('kondo');
@@ -1576,12 +1903,12 @@ function renderAbandoned() {
     const pct = Math.max(2, Math.round((p.sizeBytes / maxSz) * 100));
     return `<tr>
       <td><input type="checkbox" ${state.selected.abandoned.has(p.path) ? 'checked' : ''} onchange="toggleSel('abandoned', ${JSON.stringify(p.path)}, this.checked)" /></td>
-      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted);">${esc(p.path)}</div></td>
-      <td><span class="tag">${esc(p.sourceLabel)}</span></td>
-      <td>${p.hasRemote ? '<span class="tag keep">有远程</span>' : '<span class="tag warn">无远程</span>'} · ${p.daysIdle} 天前</td>
+      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted); margin-top:2px;">${esc(p.path)}</div></td>
+      <td class="nowrap-col"><span class="tag">${esc(p.sourceLabel)}</span></td>
+      <td class="nowrap-col">${p.hasRemote ? '<span class="tag keep">有远程</span>' : '<span class="tag warn">无远程</span>'} <span style="color:var(--muted); margin-left:4px;">${p.daysIdle} 天前</span></td>
       <td class="size-cell"><strong>${esc(p.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-      <td>${p.isAbandonedCandidate ? '<span class="tag warn">疑似废弃</span> ' : ''}${esc(p.reason)}</td>
-      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(p.path)})'>Finder</button></td>
+      <td style="line-height:1.45;">${p.isAbandonedCandidate ? '<span class="tag warn" style="margin-right:5px;">疑似废弃</span>' : ''}${esc(p.reason)}</td>
+      <td class="nowrap-col"><button class="btn sm" onclick='revealPath(${JSON.stringify(p.path)})'>Finder</button></td>
     </tr>`;
   }).join('');
   syncSelectAllCheckbox('abandoned');
