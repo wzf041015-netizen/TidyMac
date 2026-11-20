@@ -54,6 +54,23 @@ func drawSparkle(ctx: CGContext, center: CGPoint, radius: CGFloat, color: CGColo
     ctx.fillPath()
 }
 
+func drawStarburst(ctx: CGContext, center: CGPoint, outer: CGFloat, color: CGColor) {
+    // Organic 12-ray spark: long/short rays alternate, short rays slightly offset.
+    ctx.setStrokeColor(color)
+    ctx.setLineCap(.round)
+    ctx.setLineWidth(outer * 0.17)
+    let inner = outer * 0.26
+    for i in 0..<12 {
+        let isLong = i % 2 == 0
+        let deg = Double(i) * 30.0 + 90.0 - (isLong ? 0 : 7)
+        let a = CGFloat(deg * Double.pi / 180.0)
+        let r1 = isLong ? outer : outer * 0.74
+        ctx.move(to: CGPoint(x: center.x + inner * cos(a), y: center.y + inner * sin(a)))
+        ctx.addLine(to: CGPoint(x: center.x + r1 * cos(a), y: center.y + r1 * sin(a)))
+    }
+    ctx.strokePath()
+}
+
 func renderIcon(pixelSize: Int, outURL: URL) {
     let s = CGFloat(pixelSize)
     guard let cs = CGColorSpace(name: CGColorSpace.sRGB),
@@ -72,148 +89,59 @@ func renderIcon(pixelSize: Int, outURL: URL) {
     ctx.setShouldAntialias(true)
     ctx.setAllowsAntialiasing(true)
 
-    // Standard macOS icon canvas margin (~10% inset on each side -> 824/1024)
     let inset = s * 0.098
     let iconRect = CGRect(x: inset, y: inset, width: s - inset * 2, height: s - inset * 2)
-    let cornerRadius = iconRect.width * 0.228
-    let squircle = drawSquirclePath(in: iconRect, radius: cornerRadius)
+    let squircle = drawSquirclePath(in: iconRect, radius: iconRect.width * 0.228)
 
-    // Outer ambient shadow
+    // Soft ambient shadow
     ctx.saveGState()
-    ctx.setShadow(
-        offset: CGSize(width: 0, height: -s * 0.02),
-        blur: s * 0.04,
-        color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.34)
-    )
+    ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.014), blur: s * 0.035,
+                  color: CGColor(red: 0.18, green: 0.12, blue: 0.08, alpha: 0.28))
     ctx.addPath(squircle)
-    ctx.setFillColor(CGColor(red: 0.05, green: 0.14, blue: 0.28, alpha: 1))
+    ctx.setFillColor(CGColor(red: 0.96, green: 0.94, blue: 0.90, alpha: 1))
     ctx.fillPath()
     ctx.restoreGState()
 
-    // Clip to squircle & draw rich macOS backdrop gradient
     ctx.saveGState()
     ctx.addPath(squircle)
     ctx.clip()
 
-    let bgColors = [
-        CGColor(red: 0.05, green: 0.11, blue: 0.24, alpha: 1),
-        CGColor(red: 0.04, green: 0.34, blue: 0.58, alpha: 1),
-        CGColor(red: 0.08, green: 0.62, blue: 0.78, alpha: 1),
+    // Warm ivory paper gradient
+    let bg = [
+        CGColor(red: 0.925, green: 0.894, blue: 0.835, alpha: 1),
+        CGColor(red: 0.980, green: 0.973, blue: 0.953, alpha: 1),
     ] as CFArray
-    if let grad = CGGradient(colorsSpace: cs, colors: bgColors, locations: [0.0, 0.52, 1.0]) {
-        ctx.drawLinearGradient(
-            grad,
-            start: CGPoint(x: iconRect.minX, y: iconRect.minY),
-            end: CGPoint(x: iconRect.maxX, y: iconRect.maxY),
-            options: []
-        )
+    if let g = CGGradient(colorsSpace: cs, colors: bg, locations: [0, 1]) {
+        ctx.drawLinearGradient(g, start: CGPoint(x: iconRect.midX, y: iconRect.minY),
+                               end: CGPoint(x: iconRect.midX, y: iconRect.maxY), options: [])
+    }
+    // Faint terracotta glow behind the spark
+    let glow = [
+        CGColor(red: 0.85, green: 0.47, blue: 0.34, alpha: 0.20),
+        CGColor(red: 0.85, green: 0.47, blue: 0.34, alpha: 0.0),
+    ] as CFArray
+    if let g = CGGradient(colorsSpace: cs, colors: glow, locations: [0, 1]) {
+        let c = CGPoint(x: iconRect.midX, y: iconRect.midY)
+        ctx.drawRadialGradient(g, startCenter: c, startRadius: 0, endCenter: c, endRadius: iconRect.width * 0.5, options: [])
     }
 
-    // Subtle radial mint/cyan highlight top-right
-    let glowColors = [
-        CGColor(red: 0.42, green: 0.94, blue: 0.88, alpha: 0.36),
-        CGColor(red: 0.42, green: 0.94, blue: 0.88, alpha: 0.0),
-    ] as CFArray
-    if let glow = CGGradient(colorsSpace: cs, colors: glowColors, locations: [0.0, 1.0]) {
-        let gCenter = CGPoint(x: iconRect.maxX - iconRect.width * 0.2, y: iconRect.maxY - iconRect.height * 0.18)
-        ctx.drawRadialGradient(glow, startCenter: gCenter, startRadius: 0, endCenter: gCenter, endRadius: iconRect.width * 0.7, options: [])
-    }
+    // Terracotta spark
+    ctx.saveGState()
+    ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.006), blur: s * 0.012,
+                  color: CGColor(red: 0.45, green: 0.2, blue: 0.1, alpha: 0.25))
+    drawStarburst(ctx: ctx, center: CGPoint(x: iconRect.midX, y: iconRect.midY),
+                  outer: iconRect.width * 0.33,
+                  color: CGColor(red: 0.788, green: 0.392, blue: 0.259, alpha: 1))
+    ctx.restoreGState()
 
-    // Top inner rim highlight
+    ctx.restoreGState()
+
+    // Hairline rim
     ctx.saveGState()
     ctx.addPath(squircle)
-    ctx.setStrokeColor(CGColor(red: 1, green: 1, blue: 1, alpha: 0.28))
-    ctx.setLineWidth(max(1.5, s * 0.012))
+    ctx.setStrokeColor(CGColor(red: 0.45, green: 0.35, blue: 0.25, alpha: 0.12))
+    ctx.setLineWidth(max(1, s * 0.004))
     ctx.strokePath()
-    ctx.restoreGState()
-
-    // Emblem 1: Clean Stacked Document / Storage Cards (lower-center)
-    let w = iconRect.width
-    let h = iconRect.height
-    let cx = iconRect.midX
-    let cy = iconRect.midY
-
-    // Back stacked card (tilted slightly)
-    ctx.saveGState()
-    ctx.translateBy(x: cx, y: cy + h * 0.02)
-    ctx.rotate(by: -0.07)
-    let backCard = CGRect(x: -w * 0.26, y: -h * 0.21, width: w * 0.52, height: h * 0.42)
-    let backPath = CGPath(roundedRect: backCard, cornerWidth: w * 0.06, cornerHeight: w * 0.06, transform: nil)
-    ctx.addPath(backPath)
-    ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 0.24))
-    ctx.fillPath()
-    ctx.restoreGState()
-
-    // Front folder/card with clean Mac-style notch tab
-    ctx.saveGState()
-    ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.015), blur: s * 0.03, color: CGColor(red: 0, green: 0.05, blue: 0.15, alpha: 0.35))
-    let fLeft = cx - w * 0.29
-    let fRight = cx + w * 0.29
-    let fBottom = cy - h * 0.25
-    let fTop = cy + h * 0.17
-    let cr = w * 0.065
-    let tabW = w * 0.23
-    let tabH = h * 0.06
-
-    let folder = CGMutablePath()
-    folder.move(to: CGPoint(x: fLeft + cr, y: fBottom))
-    folder.addLine(to: CGPoint(x: fRight - cr, y: fBottom))
-    folder.addArc(tangent1End: CGPoint(x: fRight, y: fBottom), tangent2End: CGPoint(x: fRight, y: fBottom + cr), radius: cr)
-    folder.addLine(to: CGPoint(x: fRight, y: fTop - cr))
-    folder.addArc(tangent1End: CGPoint(x: fRight, y: fTop), tangent2End: CGPoint(x: fRight - cr, y: fTop), radius: cr)
-    folder.addLine(to: CGPoint(x: fLeft + tabW + cr * 0.7, y: fTop))
-    folder.addLine(to: CGPoint(x: fLeft + tabW, y: fTop + tabH))
-    folder.addLine(to: CGPoint(x: fLeft + cr, y: fTop + tabH))
-    folder.addArc(tangent1End: CGPoint(x: fLeft, y: fTop + tabH), tangent2End: CGPoint(x: fLeft, y: fTop + tabH - cr), radius: cr)
-    folder.addLine(to: CGPoint(x: fLeft, y: fBottom + cr))
-    folder.addArc(tangent1End: CGPoint(x: fLeft, y: fBottom), tangent2End: CGPoint(x: fLeft + cr, y: fBottom), radius: cr)
-    folder.closeSubpath()
-
-    ctx.addPath(folder)
-    ctx.clip()
-    let folderColors = [
-        CGColor(red: 0.86, green: 0.94, blue: 1.0, alpha: 0.96),
-        CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.99),
-    ] as CFArray
-    if let fGrad = CGGradient(colorsSpace: cs, colors: folderColors, locations: [0.0, 1.0]) {
-        ctx.drawLinearGradient(fGrad, start: CGPoint(x: cx, y: fBottom), end: CGPoint(x: cx, y: fTop + tabH), options: [])
-    }
-    ctx.restoreGState()
-
-    // Crisp storage gauge / check bars inside folder card
-    let barX = cx - w * 0.19
-    let barW = w * 0.38
-    let barH = h * 0.042
-    let bar1 = CGRect(x: barX, y: cy + h * 0.015, width: barW, height: barH)
-    let bar2 = CGRect(x: barX, y: cy - h * 0.065, width: barW * 0.72, height: barH)
-    let bar3 = CGRect(x: barX, y: cy - h * 0.145, width: barW * 0.48, height: barH)
-
-    ctx.setFillColor(CGColor(red: 0.05, green: 0.45, blue: 0.85, alpha: 0.85))
-    ctx.addPath(CGPath(roundedRect: bar1, cornerWidth: barH / 2, cornerHeight: barH / 2, transform: nil))
-    ctx.fillPath()
-
-    ctx.setFillColor(CGColor(red: 0.07, green: 0.65, blue: 0.75, alpha: 0.85))
-    ctx.addPath(CGPath(roundedRect: bar2, cornerWidth: barH / 2, cornerHeight: barH / 2, transform: nil))
-    ctx.fillPath()
-
-    ctx.setFillColor(CGColor(red: 0.14, green: 0.78, blue: 0.62, alpha: 0.9))
-    ctx.addPath(CGPath(roundedRect: bar3, cornerWidth: barH / 2, cornerHeight: barH / 2, transform: nil))
-    ctx.fillPath()
-
-    // Sparkles (top-right & bottom-right inside squircle) symbolizing clean & AI smart sort
-    drawSparkle(
-        ctx: ctx,
-        center: CGPoint(x: cx + w * 0.24, y: cy + h * 0.25),
-        radius: w * 0.11,
-        color: CGColor(red: 0.56, green: 0.98, blue: 0.86, alpha: 1.0)
-    )
-    drawSparkle(
-        ctx: ctx,
-        center: CGPoint(x: cx + w * 0.34, y: cy + h * 0.13),
-        radius: w * 0.052,
-        color: CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.95)
-    )
-
     ctx.restoreGState()
 
     guard let cgImg = ctx.makeImage() else { return }

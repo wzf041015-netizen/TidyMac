@@ -50,9 +50,8 @@ def test_server_and_cache_endpoints() -> None:
             assert c["ok"] is True
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5) as resp:
             html = resp.read().decode("utf-8")
-            assert "TidyMac 工作台" in html
+            assert "TidyMac" in html
             assert "floating-bar" in html
-            assert "所有应用 &amp; 关联空间" in html or "所有应用 & 关联空间" in html
         req_apps = urllib.request.Request(
             f"http://127.0.0.1:{port}/api/apps/scan",
             data=json.dumps({"includeSystem": False}).encode("utf-8"),

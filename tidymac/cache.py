@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import json
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -35,11 +37,36 @@ def _atomic_write_json(path: Path, payload: Any) -> None:
     tmp.replace(path)
 
 
+# In-process memo of parsed module envelopes keyed by file mtime/size, so that
+# progress polling and repeated /api/cache calls don't re-read & re-parse JSON.
+_MEM_LOCK = threading.Lock()
+_MEM: dict[str, tuple[int, int, dict[str, Any]]] = {}
+
+
+def _stat_sig(p: Path) -> tuple[int, int] | None:
+    try:
+        st = p.stat()
+    except OSError:
+        return None
+    return st.st_mtime_ns, st.st_size
+
+
+def module_version(key: str) -> int:
+    """Monotonic-ish version for a module (file mtime in ns, 0 if absent)."""
+    sig = _stat_sig(_module_file(key))
+    return sig[0] if sig else 0
+
+
 def save_module(key: str, data: dict[str, Any], scanned_at: int | None = None) -> dict[str, Any]:
     ts = scanned_at or int(time.time())
     envelope = {"scannedAt": ts, "data": data}
+    p = _module_file(key)
     try:
-        _atomic_write_json(_module_file(key), envelope)
+        _atomic_write_json(p, envelope)
+        sig = _stat_sig(p)
+        if sig:
+            with _MEM_LOCK:
+                _MEM[key] = (sig[0], sig[1], envelope)
     except OSError:
         pass
     return envelope
@@ -47,11 +74,20 @@ def save_module(key: str, data: dict[str, Any], scanned_at: int | None = None) -
 
 def load_module(key: str) -> dict[str, Any] | None:
     p = _module_file(key)
-    if not p.exists():
+    sig = _stat_sig(p)
+    if sig is None:
+        with _MEM_LOCK:
+            _MEM.pop(key, None)
         return None
+    with _MEM_LOCK:
+        hit = _MEM.get(key)
+    if hit and hit[0] == sig[0] and hit[1] == sig[1]:
+        return hit[2]
     try:
         raw = json.loads(p.read_text(encoding="utf-8"))
         if isinstance(raw, dict) and "data" in raw:
+            with _MEM_LOCK:
+                _MEM[key] = (sig[0], sig[1], raw)
             return raw
     except Exception:
         return None
@@ -78,26 +114,52 @@ def load_meta() -> dict[str, Any]:
         return {}
 
 
-def load_all_cached() -> dict[str, Any]:
+def load_all_cached(known_versions: dict[str, int] | None = None) -> dict[str, Any]:
+    """Load cached modules.
+
+    When ``known_versions`` is given, modules whose on-disk version equals the
+    client's known version are omitted from ``modules`` (delta payload), while
+    ``timestamps`` / ``versions`` always describe every cached module.
+    """
     modules: dict[str, Any] = {}
     timestamps: dict[str, int] = {}
+    versions: dict[str, int] = {}
     for key in MODULE_KEYS:
+        ver = module_version(key)
+        if not ver:
+            continue
+        if known_versions is not None and known_versions.get(key) == ver:
+            # Client already has this exact payload; only report metadata.
+            env = load_module(key)
+            if env:
+                timestamps[key] = int(env.get("scannedAt", 0))
+                versions[key] = ver
+            continue
         env = load_module(key)
         if env and isinstance(env.get("data"), dict):
             modules[key] = env["data"]
             timestamps[key] = int(env.get("scannedAt", 0))
+            versions[key] = ver
     meta = load_meta()
     return {
         "ok": True,
-        "hasCache": bool(modules),
+        "hasCache": bool(timestamps),
         "lastCheckupAt": meta.get("lastCheckupAt") or (max(timestamps.values()) if timestamps else 0),
         "timestamps": timestamps,
+        "versions": versions,
         "modules": modules,
+        "delta": known_versions is not None,
     }
 
 
+def _load_for_update(key: str) -> dict[str, Any] | None:
+    """Deep-copied envelope so in-place pruning never races readers of the memo."""
+    env = load_module(key)
+    return copy.deepcopy(env) if env else None
+
+
 def prune_mole_cache(removed_paths: list[str] | None = None, whitelisted_paths: list[str] | None = None) -> dict[str, Any] | None:
-    env = load_module("mole")
+    env = _load_for_update("mole")
     if not env:
         return None
     data = env["data"]
@@ -126,7 +188,7 @@ def prune_mole_cache(removed_paths: list[str] | None = None, whitelisted_paths: 
 
 
 def prune_orphans_cache(removed_paths: list[str]) -> dict[str, Any] | None:
-    env = load_module("orphans")
+    env = _load_for_update("orphans")
     if not env:
         return None
     data = env["data"]
@@ -157,7 +219,7 @@ def prune_projects_cache(removed_paths: list[str]) -> tuple[dict[str, Any] | Non
         return any(p == r or p.startswith(r.rstrip("/") + "/") for r in removed)
 
     kondo_out = None
-    k_env = load_module("kondo")
+    k_env = _load_for_update("kondo")
     if k_env:
         kd = k_env["data"]
         new_projs = []
@@ -180,7 +242,7 @@ def prune_projects_cache(removed_paths: list[str]) -> tuple[dict[str, Any] | Non
         kondo_out = kd
 
     ab_out = None
-    a_env = load_module("abandoned")
+    a_env = _load_for_update("abandoned")
     if a_env:
         ad = a_env["data"]
         projs = [p for p in ad.get("projects", []) if not _is_under_removed(p.get("path", ""))]
@@ -203,7 +265,7 @@ def prune_dupes_cache(removed_paths: list[str]) -> dict[str, Any]:
     updated: dict[str, Any] = {}
 
     for key in ("dupes_docs", "dupes_all"):
-        env = load_module(key)
+        env = _load_for_update(key)
         if not env:
             continue
         d = env["data"]
@@ -227,7 +289,7 @@ def prune_dupes_cache(removed_paths: list[str]) -> dict[str, Any]:
         save_module(key, d, scanned_at=env.get("scannedAt"))
         updated[key] = d
 
-    img_env = load_module("sim_images")
+    img_env = _load_for_update("sim_images")
     if img_env:
         d = img_env["data"]
         groups = []
@@ -251,7 +313,7 @@ def prune_dupes_cache(removed_paths: list[str]) -> dict[str, Any]:
         save_module("sim_images", d, scanned_at=img_env.get("scannedAt"))
         updated["sim_images"] = d
 
-    big_env = load_module("big_files")
+    big_env = _load_for_update("big_files")
     if big_env:
         d = big_env["data"]
         files = [f for f in d.get("files", []) if f.get("path") not in removed]
@@ -266,7 +328,7 @@ def prune_dupes_cache(removed_paths: list[str]) -> dict[str, Any]:
 
 
 def prune_apps_cache(removed_paths: list[str]) -> dict[str, Any] | None:
-    env = load_module("apps")
+    env = _load_for_update("apps")
     if not env:
         return None
     removed = set(removed_paths)

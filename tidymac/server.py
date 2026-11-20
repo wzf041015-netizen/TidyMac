@@ -11,7 +11,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .apps_adapter import scan_installed_apps, trash_app_paths
 from .cache import (
@@ -38,6 +38,32 @@ from .projects_adapter import scan_abandoned_projects, scan_kondo_artifacts, tra
 from .utils import WORKBENCH_ROOT, check_permissions, engine_status, human_bytes
 
 WEB_DIR = WORKBENCH_ROOT / "web"
+
+_INDEX_CACHE: dict[str, Any] = {"sig": None, "raw": b""}
+
+
+def _index_bytes() -> bytes:
+    """Serve index.html from memory, re-reading only when the file changes."""
+    p = WEB_DIR / "index.html"
+    st = p.stat()
+    sig = (st.st_mtime_ns, st.st_size)
+    if _INDEX_CACHE["sig"] != sig:
+        _INDEX_CACHE["raw"] = p.read_bytes()
+        _INDEX_CACHE["sig"] = sig
+    return _INDEX_CACHE["raw"]
+
+
+def _parse_known(query: str) -> dict[str, int] | None:
+    """Parse ``known=key:version,key:version`` from a query string."""
+    qs = parse_qs(query)
+    if "known" not in qs:
+        return None
+    known: dict[str, int] = {}
+    for part in (qs["known"][0] or "").split(","):
+        k, _, v = part.partition(":")
+        if k and v.isdigit():
+            known[k] = int(v)
+    return known
 
 _CHECKUP_LOCK = threading.Lock()
 _CHECKUP_STATE: dict[str, Any] = {
@@ -355,7 +381,10 @@ def _dispatch_post(path: str, body: dict[str, Any], server_ref: ThreadingHTTPSer
 
 
 class TidyMacHandler(BaseHTTPRequestHandler):
-    server_version = "TidyMac/0.2"
+    server_version = "TidyMac/0.3"
+    # Keep-alive: every response carries Content-Length, so the WebView can reuse
+    # a single socket for progress polling instead of a new TCP handshake each tick.
+    protocol_version = "HTTP/1.1"
 
     def log_message(self, format: str, *args: Any) -> None:
         return
@@ -372,7 +401,7 @@ class TidyMacHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path in ("/", "/index.html"):
-            raw = (WEB_DIR / "index.html").read_bytes()
+            raw = _index_bytes()
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(raw)))
@@ -395,7 +424,7 @@ class TidyMacHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/api/cache":
-            cached = load_all_cached()
+            cached = load_all_cached(_parse_known(parsed.query))
             cached["disk"] = _disk_info()
             self._send_json(HTTPStatus.OK, cached)
             return
@@ -406,7 +435,7 @@ class TidyMacHandler(BaseHTTPRequestHandler):
                 state["completed"] = list(_CHECKUP_STATE["completed"])
                 state["pending"] = list(_CHECKUP_STATE["pending"])
                 state["errors"] = dict(_CHECKUP_STATE["errors"])
-            cached = load_all_cached()
+            cached = load_all_cached(_parse_known(parsed.query))
             self._send_json(
                 HTTPStatus.OK,
                 {

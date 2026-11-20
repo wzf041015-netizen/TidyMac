@@ -3,1185 +3,1225 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TidyMac — 轻量 Mac 清理与文档整理工作台</title>
+<meta name="color-scheme" content="light dark" />
+<title>TidyMac</title>
 <style>
+  /* ==========================================================================
+     TidyMac — warm, quiet, frosted. Design tokens
+     ========================================================================== */
   :root {
-    --bg: #f5f5f7;
-    --sidebar-bg: rgba(246, 246, 249, 0.90);
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    --font-serif: ui-serif, "New York", "Iowan Old Style", "Songti SC", "STSong", Georgia, serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+    --sidebar-w: 236px;
+    --titlebar: 0px;
+
+    --bg: #faf9f5;
+    --sidebar-bg: #f1efe8;
+    --sidebar-tint: rgba(241, 239, 232, 0.58);
     --surface: #ffffff;
-    --surface-elevated: #ffffff;
-    --surface-2: #f2f2f7;
-    --control-track: rgba(118, 118, 128, 0.12);
-    --segment-active: #ffffff;
-    --glass: rgba(245, 245, 247, 0.78);
-    --hairline: rgba(0, 0, 0, 0.08);
-    --hairline-strong: rgba(0, 0, 0, 0.14);
-    --border: rgba(0, 0, 0, 0.08);
-    --text: #1d1d1f;
-    --text-secondary: #424245;
-    --muted: #86868b;
-    --accent: #0071e3;
-    --accent-hover: #0077ed;
-    --accent-soft: rgba(0, 113, 227, 0.11);
-    --accent-ring: rgba(0, 113, 227, 0.28);
-    --green: #248a3d;
-    --green-soft: rgba(52, 199, 89, 0.14);
-    --amber: #b25000;
-    --amber-soft: rgba(255, 159, 10, 0.15);
-    --red: #d70015;
-    --red-solid: #ff3b30;
-    --red-soft: rgba(255, 59, 48, 0.12);
-    --purple: #8944ab;
-    --purple-soft: rgba(175, 82, 222, 0.12);
-    --teal: #0071a4;
-    --teal-soft: rgba(48, 176, 199, 0.14);
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
-    --shadow-float: 0 16px 40px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+    --surface-2: #f6f5f0;
+    --sunken: #f0eee7;
+    --glass: rgba(250, 249, 245, 0.74);
+    --glass-strong: rgba(252, 251, 248, 0.86);
+
+    --hairline: rgba(31, 30, 29, 0.08);
+    --hairline-strong: rgba(31, 30, 29, 0.14);
+    --hover: rgba(31, 30, 29, 0.04);
+    --active: rgba(31, 30, 29, 0.07);
+
+    --text: #1f1e1d;
+    --text-2: #3d3d3a;
+    --muted: #7a7870;
+    --faint: #aaa79e;
+
+    --accent: #c96442;
+    --accent-hover: #b4583a;
+    --accent-soft: rgba(201, 100, 66, 0.10);
+    --accent-ring: rgba(201, 100, 66, 0.26);
+    --on-accent: #fffaf5;
+
+    --green: #5b7a3c;   --green-soft: rgba(108, 142, 72, 0.14);
+    --amber: #a2661a;   --amber-soft: rgba(205, 142, 52, 0.16);
+    --red: #b4473a;     --red-soft: rgba(190, 76, 60, 0.10);
+    --red-solid: #c2503f;
+    --blue: #4d6c9c;    --blue-soft: rgba(80, 112, 160, 0.11);
+    --purple: #7a5fa6;  --purple-soft: rgba(122, 95, 166, 0.12);
+    --teal: #3d7c77;    --teal-soft: rgba(61, 124, 119, 0.13);
+
+    --r-lg: 16px;
+    --r: 12px;
+    --r-sm: 8px;
+
+    --shadow-sm: 0 1px 2px rgba(31, 30, 29, 0.04);
+    --shadow: 0 1px 2px rgba(31, 30, 29, 0.035), 0 6px 20px -6px rgba(31, 30, 29, 0.06);
+    --shadow-float: 0 18px 48px -12px rgba(31, 30, 29, 0.22), 0 2px 6px rgba(31, 30, 29, 0.06);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #121214;
-      --sidebar-bg: rgba(26, 26, 29, 0.90);
-      --surface: #1c1c1e;
-      --surface-elevated: #242426;
-      --surface-2: #2c2c2e;
-      --control-track: rgba(118, 118, 128, 0.24);
-      --segment-active: #3a3a3c;
-      --glass: rgba(22, 22, 24, 0.78);
-      --hairline: rgba(255, 255, 255, 0.08);
-      --hairline-strong: rgba(255, 255, 255, 0.16);
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #f5f5f7;
-      --text-secondary: #d1d1d6;
-      --muted: #98989d;
-      --accent: #0a84ff;
-      --accent-hover: #409cff;
-      --accent-soft: rgba(10, 132, 255, 0.18);
-      --accent-ring: rgba(10, 132, 255, 0.36);
-      --green: #30d158;
-      --green-soft: rgba(48, 209, 88, 0.16);
-      --amber: #ff9f0a;
-      --amber-soft: rgba(255, 159, 10, 0.17);
-      --red: #ff6961;
-      --red-solid: #ff453a;
-      --red-soft: rgba(255, 69, 58, 0.17);
-      --purple: #bf5af2;
-      --purple-soft: rgba(191, 90, 242, 0.17);
-      --teal: #64d2ff;
-      --teal-soft: rgba(100, 210, 255, 0.16);
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 28px rgba(0, 0, 0, 0.22);
-      --shadow-float: 0 20px 50px rgba(0, 0, 0, 0.56), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+      --bg: #262624;
+      --sidebar-bg: #1f1e1d;
+      --sidebar-tint: rgba(28, 27, 26, 0.52);
+      --surface: #30302d;
+      --surface-2: #363633;
+      --sunken: #1f1e1d;
+      --glass: rgba(38, 38, 36, 0.74);
+      --glass-strong: rgba(44, 44, 41, 0.88);
+
+      --hairline: rgba(250, 249, 245, 0.075);
+      --hairline-strong: rgba(250, 249, 245, 0.13);
+      --hover: rgba(250, 249, 245, 0.045);
+      --active: rgba(250, 249, 245, 0.08);
+
+      --text: #f4f3ee;
+      --text-2: #d6d4ca;
+      --muted: #9d9b92;
+      --faint: #6f6d66;
+
+      --accent: #d97757;
+      --accent-hover: #e48a6b;
+      --accent-soft: rgba(217, 119, 87, 0.15);
+      --accent-ring: rgba(217, 119, 87, 0.34);
+      --on-accent: #1f1e1d;
+
+      --green: #a3c27f;   --green-soft: rgba(150, 190, 110, 0.14);
+      --amber: #e3ab5f;   --amber-soft: rgba(227, 171, 95, 0.15);
+      --red: #ec8474;     --red-soft: rgba(236, 132, 116, 0.13);
+      --red-solid: #d4604e;
+      --blue: #93afdb;    --blue-soft: rgba(147, 175, 219, 0.13);
+      --purple: #b9a0df;  --purple-soft: rgba(185, 160, 223, 0.14);
+      --teal: #82c4be;    --teal-soft: rgba(130, 196, 190, 0.13);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.22), 0 8px 24px -8px rgba(0, 0, 0, 0.3);
+      --shadow-float: 0 22px 56px -12px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(250, 249, 245, 0.1);
     }
   }
+  .native-shell { --titlebar: 28px; }
+
+  /* ==========================================================================
+     Base
+     ========================================================================== */
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg);
     color: var(--text);
     font-size: 13px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-    font-feature-settings: "cv05" 1;
+    text-rendering: optimizeLegibility;
   }
-  .num, .pill, .card-val, .size-cell, .badge, .hero-val {
-    font-variant-numeric: tabular-nums;
-  }
+  .native-shell body { background: transparent; }
+  ::selection { background: var(--accent-ring); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; border-radius: 6px; }
+  .num, .pill, .size-cell, .tabular { font-variant-numeric: tabular-nums; }
+  .serif { font-family: var(--font-serif); }
+  .hidden { display: none !important; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--faint); }
+  ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+
   .app-shell {
     display: grid;
-    grid-template-columns: 258px minmax(0, 1fr);
-    min-height: 100vh;
-  }
-
-  /* macOS Source-List Sidebar */
-  .sidebar {
-    background: var(--sidebar-bg);
-    backdrop-filter: saturate(180%) blur(24px);
-    -webkit-backdrop-filter: saturate(180%) blur(24px);
-    border-right: 1px solid var(--hairline);
-    padding: 18px 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    position: sticky;
-    top: 0;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
     height: 100vh;
   }
-  .brand {
+
+  /* ==========================================================================
+     Sidebar — frosted (native vibrancy in the app shell)
+     ========================================================================== */
+  .sidebar {
+    background: var(--sidebar-bg);
+    padding: calc(var(--titlebar) + 16px) 12px 14px;
     display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 4px 8px 6px;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+    border-right: 1px solid var(--hairline);
+    user-select: none;
+    -webkit-user-select: none;
   }
-  .brand-logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(155deg, #0b2d59 0%, #0071e3 52%, #19c3a6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 4px 12px rgba(0, 113, 227, 0.28);
-  }
-  .brand h1 {
-    margin: 0;
-    font-size: 15.5px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-  }
-  .brand p { margin: 2px 0 0; font-size: 11px; color: var(--muted); letter-spacing: -0.005em; }
-  .nav { display: flex; flex-direction: column; gap: 2px; }
-  .nav-section {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    padding: 10px 10px 4px;
-    letter-spacing: 0.02em;
-  }
+  .native-shell .sidebar { background: var(--sidebar-tint); }
+
+  .brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px; }
+  .brand-mark { width: 26px; height: 26px; color: var(--accent); flex-shrink: 0; display: grid; place-items: center; }
+  .brand-mark svg { width: 26px; height: 26px; }
+  .brand-name { font-family: var(--font-serif); font-size: 19px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.1; }
+  .brand-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .nav { display: flex; flex-direction: column; gap: 1px; }
+  .nav-section { font-size: 11px; font-weight: 500; color: var(--muted); padding: 14px 10px 5px; }
+  .nav-section:first-child { padding-top: 2px; }
   .nav button {
     border: 0;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--text-2);
     text-align: left;
-    padding: 8px 10px;
-    border-radius: 9px;
-    cursor: pointer;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    cursor: default;
     font-size: 13px;
-    font-weight: 500;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    transition: background 0.16s ease, color 0.14s ease, transform 0.1s ease;
+    transition: background-color 0.14s ease, color 0.14s ease;
   }
-  .nav button .nav-left { display: flex; align-items: center; gap: 9px; min-width: 0; white-space: nowrap; }
-  .nav button svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.72; color: var(--accent); transition: opacity 0.15s, color 0.15s; }
-  .nav button:hover { background: var(--control-track); color: var(--text); }
-  .nav button.active {
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 600;
-  }
-  .nav button.active svg { opacity: 1; color: var(--accent); }
-  .pill {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 7px;
-    border-radius: 999px;
-    background: var(--control-track);
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .nav button.active .pill { background: var(--accent); color: #fff; }
+  .nav-left { display: flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; overflow: hidden; }
+  .nav-left span { overflow: hidden; text-overflow: ellipsis; }
+  .nav button svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); transition: color 0.14s ease; }
+  .nav button:hover { background: var(--hover); color: var(--text); }
+  .nav button.active { background: var(--active); color: var(--text); font-weight: 600; }
+  .nav button.active svg { color: var(--accent); }
+  .pill { font-size: 11px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+  .nav button.active .pill { color: var(--accent); }
+
   .sidebar-footer {
     margin-top: auto;
-    padding: 11px 12px;
-    border-radius: 12px;
-    background: var(--control-track);
-    border: 1px solid var(--hairline);
+    padding: 12px;
+    border-radius: var(--r);
+    background: var(--hover);
     font-size: 11.5px;
     color: var(--muted);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    line-height: 1.55;
   }
-  .sidebar-footer strong {
-    color: var(--text);
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .sidebar-footer strong { color: var(--text-2); font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .sidebar-footer svg { color: var(--green); }
 
-  /* Main Canvas & Sticky Frosted Topbar */
-  .main-wrap { min-width: 0; display: flex; flex-direction: column; }
+  /* ==========================================================================
+     Main column & frosted topbar
+     ========================================================================== */
+  .main-wrap {
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bg);
+    position: relative;
+    scroll-behavior: auto;
+  }
   .topbar {
     position: sticky;
     top: 0;
     z-index: 40;
     background: var(--glass);
-    backdrop-filter: saturate(180%) blur(22px);
-    -webkit-backdrop-filter: saturate(180%) blur(22px);
+    backdrop-filter: saturate(160%) blur(20px);
+    -webkit-backdrop-filter: saturate(160%) blur(20px);
     border-bottom: 1px solid var(--hairline);
-    padding: 12px 26px;
+    padding: 16px 36px 14px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
+    gap: 16px;
+    align-items: flex-end;
     justify-content: space-between;
   }
-  .topbar-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .topbar-left { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .page-heading {
     margin: 0;
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-family: var(--font-serif);
+    font-size: 23px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
     line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .status-strip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .status-strip { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: 11.5px;
-    font-weight: 500;
-    background: var(--control-track);
-    color: var(--text-secondary);
-    border: 1px solid var(--hairline);
+    font-size: 12px;
+    color: var(--muted);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
-  .badge::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-  }
-  .badge.ok { color: var(--green); background: var(--green-soft); border-color: transparent; }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex-shrink: 0; }
   .badge.ok::before { background: var(--green); }
-  .badge.warn { color: var(--amber); background: var(--amber-soft); border-color: transparent; }
+  .badge.warn { color: var(--amber); }
   .badge.warn::before { background: var(--amber); }
-  .badge.info { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .badge.info { color: var(--text-2); }
   .badge.info::before { background: var(--accent); }
 
-  .main { padding: 20px 26px 96px; max-width: 1360px; width: 100%; }
+  .main { padding: 26px 36px 128px; max-width: 1320px; margin: 0 auto; }
 
-  /* Apple Buttons */
+  /* ==========================================================================
+     Buttons
+     ========================================================================== */
   .btn {
     border: 1px solid var(--hairline-strong);
     background: var(--surface);
     color: var(--text);
-    padding: 7px 14px;
+    height: 32px;
+    padding: 0 14px;
     border-radius: 9px;
     font-size: 12.5px;
     font-weight: 500;
-    cursor: pointer;
+    cursor: default;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
     white-space: nowrap;
-    transition: background 0.15s ease, filter 0.15s ease, transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.15s ease;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, transform 0.12s var(--ease), opacity 0.14s ease;
   }
   .btn:hover:not(:disabled) { background: var(--surface-2); }
-  .btn:active:not(:disabled) { transform: scale(0.975); }
-  .btn:disabled { opacity: 0.48; cursor: not-allowed; }
-  .btn.primary {
-    background: var(--accent);
-    color: #fff;
-    border-color: transparent;
-    font-weight: 600;
-    box-shadow: 0 1px 2px rgba(0, 113, 227, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  }
+  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; }
+  .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 600; }
   .btn.primary:hover:not(:disabled) { background: var(--accent-hover); }
-  .btn.pill-cta { border-radius: 999px; padding: 8px 18px; font-size: 13px; }
-  .btn.danger {
-    background: var(--red-solid);
-    color: #fff;
-    border-color: transparent;
-    font-weight: 600;
-  }
-  .btn.danger:hover:not(:disabled) { filter: brightness(1.06); }
-  .btn.sm { padding: 5px 11px; font-size: 12px; border-radius: 7px; background: var(--surface-2); border-color: var(--hairline); }
-  .btn.sm:hover:not(:disabled) { filter: brightness(0.95); }
-  .btn.sm.primary { background: var(--accent); color: #fff; border-color: transparent; }
-  .btn.sm.danger { background: var(--red-solid); color: #fff; border-color: transparent; }
+  .btn.danger { background: var(--red-soft); color: var(--red); border-color: transparent; box-shadow: none; }
+  .btn.danger:hover:not(:disabled) { background: var(--red-solid); color: #fff; }
+  .btn.danger.solid { background: var(--red-solid); color: #fff; }
+  .btn.danger.solid:hover:not(:disabled) { filter: brightness(1.06); }
+  .btn.sm { height: 28px; padding: 0 11px; font-size: 12px; border-radius: 8px; }
+  .btn.ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); }
+  .btn.ghost:hover:not(:disabled) { background: var(--active); color: var(--text); }
+  .btn.icon { width: 28px; height: 28px; padding: 0; border-radius: 7px; }
+  .btn.cta { height: 34px; padding: 0 16px 0 13px; border-radius: 999px; font-size: 13px; box-shadow: 0 1px 2px rgba(31, 30, 29, 0.12), 0 6px 16px -6px var(--accent-ring); }
+  .btn.cta svg { width: 16px; height: 16px; }
+  .cta-sub { font-size: 11px; font-weight: 500; opacity: 0.72; margin-left: 2px; }
+  .btn.cta.is-running svg { animation: spin 2.4s linear infinite; }
 
+  .spinner {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 1.6px solid currentColor; border-right-color: transparent;
+    animation: spin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ==========================================================================
+     Progress & banner
+     ========================================================================== */
   .progress-card {
     background: var(--surface);
     border: 1px solid var(--hairline);
-    border-radius: var(--radius);
+    border-radius: var(--r-lg);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .progress-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .progress-title { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+  .progress-title svg { width: 16px; height: 16px; color: var(--accent); animation: spin 2.4s linear infinite; }
+  .progress-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .progress-track { height: 4px; background: var(--active); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+  .progress-fill { height: 100%; width: 100%; background: var(--accent); border-radius: 999px; transform-origin: left center; transform: scaleX(0); transition: transform 0.4s var(--ease); }
+
+  .banner {
     padding: 14px 18px;
+    border-radius: var(--r);
+    margin-bottom: 20px;
+    font-size: 12.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: var(--amber-soft);
+    color: var(--text-2);
+  }
+  .banner strong { color: var(--amber); }
+  .banner .fine { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+  /* ==========================================================================
+     Overview — hero & cards
+     ========================================================================== */
+  .hero {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 20px;
+    padding: 26px 28px 22px;
     margin-bottom: 18px;
     box-shadow: var(--shadow);
-  }
-  .progress-track {
-    height: 6px;
-    background: var(--control-track);
-    border-radius: 999px;
     overflow: hidden;
-    margin-top: 9px;
   }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--teal));
-    transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-    width: 0%;
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -40% -10% auto auto;
+    width: 520px; height: 360px;
+    background: radial-gradient(closest-side, var(--accent-soft), transparent);
+    pointer-events: none;
   }
-
-  /* Apple Bento Hero Storage Card */
-  .hero-bento {
-    background:
-      radial-gradient(620px 200px at 8% 0%, var(--accent-soft), transparent 70%),
-      radial-gradient(520px 220px at 95% 15%, var(--teal-soft), transparent 70%),
-      var(--surface);
-    border: 1px solid var(--hairline);
-    border-radius: 18px;
-    padding: 20px 22px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow);
-  }
-  .hero-top {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-  .hero-kicker { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 4px; letter-spacing: 0.01em; }
-  .hero-val {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.08;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
-  }
-  .hero-meta { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .hero > * { position: relative; }
+  .hero-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
+  .hero-kicker { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .hero-kicker .chip { font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); background: var(--accent-soft); padding: 1px 7px; border-radius: 999px; }
+  .hero-val { font-family: var(--font-serif); font-size: 46px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.02; }
+  .hero-meta { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.7; }
   .hero-meta strong { color: var(--text); font-weight: 600; }
 
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
-    gap: 12px;
-    margin-bottom: 18px;
-  }
+  .breakdown-bar { height: 8px; border-radius: 999px; background: var(--active); overflow: hidden; display: flex; gap: 3px; margin-bottom: 14px; }
+  .breakdown-seg { height: 100%; border-radius: 999px; transition: width 0.4s var(--ease); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12px; color: var(--muted); }
+  .legend strong { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 3px; display: inline-block; margin-right: 7px; vertical-align: 0; }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 12px; margin-bottom: 18px; }
   .card {
     background: var(--surface);
     border: 1px solid var(--hairline);
-    border-radius: 16px;
-    padding: 15px 16px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: border-color 0.16s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease;
+    border-radius: var(--r-lg);
+    padding: 16px 16px 15px;
+    box-shadow: var(--shadow-sm);
+    cursor: default;
+    transition: border-color 0.18s ease, transform 0.22s var(--ease), box-shadow 0.22s ease;
   }
-  .card:hover {
-    border-color: var(--accent-ring);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
-  }
-  .card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
+  .card:hover { border-color: var(--hairline-strong); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .card:active { transform: translateY(0) scale(0.99); }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
   .card-title-row { display: flex; align-items: center; gap: 9px; min-width: 0; }
-  .bento-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .bento-icon.blue { background: var(--accent-soft); color: var(--accent); }
-  .bento-icon.amber { background: var(--amber-soft); color: var(--amber); }
-  .bento-icon.teal { background: var(--teal-soft); color: var(--teal); }
-  .bento-icon.purple { background: var(--purple-soft); color: var(--purple); }
-  .bento-icon.green { background: var(--green-soft); color: var(--green); }
-  .card-title { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .chevron { color: var(--muted); font-size: 15px; line-height: 1; transition: transform 0.16s ease, color 0.16s ease; flex-shrink: 0; }
+  .ico { width: 28px; height: 28px; border-radius: 8px; display: inline-grid; place-items: center; flex-shrink: 0; }
+  .ico svg { width: 15px; height: 15px; }
+  .ico.accent { background: var(--accent-soft); color: var(--accent); }
+  .ico.amber { background: var(--amber-soft); color: var(--amber); }
+  .ico.teal { background: var(--teal-soft); color: var(--teal); }
+  .ico.purple { background: var(--purple-soft); color: var(--purple); }
+  .ico.green { background: var(--green-soft); color: var(--green); }
+  .ico.blue { background: var(--blue-soft); color: var(--blue); }
+  .card-title { font-size: 12.5px; font-weight: 500; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chevron { color: var(--faint); width: 14px; height: 14px; flex-shrink: 0; transition: transform 0.2s var(--ease), color 0.2s ease; }
   .card:hover .chevron { transform: translateX(2px); color: var(--accent); }
-  .card-val { font-size: 24px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+  .card-val { font-family: var(--font-serif); font-size: 23px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-val.pending { color: var(--faint); font-size: 20px; }
   .card-sub { font-size: 11.5px; color: var(--muted); margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .breakdown-bar {
-    height: 10px;
-    border-radius: 999px;
-    background: var(--control-track);
-    overflow: hidden;
-    display: flex;
-    gap: 2px;
-    margin: 4px 0 11px;
-  }
-  .breakdown-seg { height: 100%; transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .breakdown-seg:first-child { border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
-  .breakdown-seg:last-child { border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
-  .legend strong { color: var(--text); font-weight: 600; }
-  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
-
-  /* Panels & Native macOS Segmented Controls */
+  /* ==========================================================================
+     Panels, segmented control, toolbar
+     ========================================================================== */
   .panel {
     background: var(--surface);
     border: 1px solid var(--hairline);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
   .panel-head {
-    padding: 13px 18px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--hairline);
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 10px 14px;
     align-items: center;
     justify-content: space-between;
+    min-height: 58px;
   }
-  .panel-head h2 {
-    margin: 0;
-    font-size: 14.5px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .panel-body { padding: 15px 18px; }
+  .panel-head h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.005em; display: flex; align-items: center; gap: 10px; }
+  .panel-body { padding: 16px 20px 18px; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .actions .sep { width: 1px; height: 18px; background: var(--hairline-strong); margin: 0 4px; }
+
   .subtabs {
     display: inline-flex;
-    align-items: center;
-    gap: 3px;
+    gap: 2px;
     padding: 3px;
     border-radius: 11px;
-    background: var(--control-track);
+    background: var(--sunken);
     border: 1px solid var(--hairline);
-    margin-bottom: 14px;
+    margin-bottom: 18px;
     flex-wrap: wrap;
   }
   .subtabs button {
     border: 0;
     background: transparent;
     color: var(--muted);
-    padding: 6px 14px;
+    height: 30px;
+    padding: 0 14px;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: default;
     font-size: 12.5px;
     font-weight: 500;
-    transition: background 0.18s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease, box-shadow 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background-color 0.18s var(--ease), color 0.14s ease, box-shadow 0.18s ease;
   }
+  .subtabs button .eng { font-size: 11px; color: var(--faint); font-weight: 500; }
   .subtabs button:hover:not(.active) { color: var(--text); }
-  .subtabs button.active {
-    background: var(--segment-active);
-    color: var(--text);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18), 0 0 0 0.5px var(--hairline);
-  }
-  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .subtabs button.active { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(31, 30, 29, 0.1), 0 0 0 0.5px var(--hairline); }
+  .subtabs button.active .eng { color: var(--accent); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 14px; }
+  .toolbar .summary { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .check { display: inline-flex; align-items: center; gap: 7px; color: var(--text-2); font-size: 12.5px; cursor: default; user-select: none; -webkit-user-select: none; }
+
   input[type="text"], input[type="search"], select {
-    background: var(--surface-2);
-    border: 1px solid var(--hairline);
+    background: var(--surface);
+    border: 1px solid var(--hairline-strong);
     color: var(--text);
-    padding: 7px 11px;
-    border-radius: 8px;
+    height: 32px;
+    padding: 0 11px;
+    border-radius: 9px;
     font-size: 12.5px;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.14s ease, box-shadow 0.14s ease;
   }
-  input[type="text"]:focus, input[type="search"]:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-ring);
+  input[type="search"] {
+    padding-left: 30px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239d9b92' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 14px;
+    background-position: 10px center;
   }
-  input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    accent-color: var(--accent);
-    cursor: pointer;
-    vertical-align: middle;
-  }
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  th, td {
-    text-align: left;
-    padding: 9px 11px;
-    border-bottom: 1px solid var(--hairline);
-    vertical-align: middle;
-  }
+  input::placeholder { color: var(--faint); }
+  input[type="text"]:focus, input[type="search"]:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+  select { padding-right: 8px; }
+  input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent); margin: 0; vertical-align: middle; }
+
+  /* ==========================================================================
+     Tables
+     ========================================================================== */
+  .table-wrap { max-height: min(64vh, 640px); overflow: auto; border: 1px solid var(--hairline); border-radius: var(--r); background: var(--surface); }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
   th {
     font-size: 11.5px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--muted);
-    background: var(--surface-elevated);
+    background: var(--glass-strong);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
     z-index: 2;
     white-space: nowrap;
   }
   tbody tr:last-child td { border-bottom: 0; }
-  tbody tr { transition: background 0.12s ease; }
-  tbody tr:hover td { background: var(--control-track); }
+  tbody tr { transition: background-color 0.1s ease; }
+  tbody tr:hover td { background: var(--hover); }
+  tbody tr.is-selected td { background: var(--accent-soft); }
+  tbody tr.is-active td { background: var(--active); }
+  tbody tr.is-active td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+  tr[data-row], tr[data-app] { cursor: default; }
+  .col-chk { width: 36px; padding-right: 0; }
+  .col-act { width: 48px; text-align: right; }
+  .col-act .btn { opacity: 0.35; }
+  tr:hover .col-act .btn { opacity: 1; }
   .nowrap-col { white-space: nowrap; }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; word-break: break-all; }
-  .size-cell { min-width: 104px; white-space: nowrap; }
-  .size-bar { height: 4px; border-radius: 999px; background: var(--control-track); margin-top: 5px; overflow: hidden; }
-  .size-bar > div { height: 100%; background: var(--accent); border-radius: 999px; }
+  .strong { font-weight: 600; color: var(--text); }
+  .sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .mono { font-family: var(--font-mono); font-size: 11.5px; word-break: break-all; color: var(--text-2); }
+  .mono.dim { color: var(--muted); }
+  .clip { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; word-break: normal; max-width: 260px; }
+  .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .size-cell { min-width: 104px; white-space: nowrap; font-weight: 600; }
+  .size-bar { height: 3px; border-radius: 999px; background: var(--active); margin-top: 6px; overflow: hidden; }
+  .size-bar > div { height: 100%; background: var(--accent); opacity: 0.75; border-radius: 999px; }
+  .more-row td { text-align: center; padding: 12px; }
+
   .tag {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
+    height: 20px;
+    padding: 0 7px;
     border-radius: 6px;
     font-size: 11px;
     font-weight: 500;
-    background: var(--control-track);
-    color: var(--text-secondary);
-    border: 1px solid var(--hairline);
+    background: var(--active);
+    color: var(--text-2);
     white-space: nowrap;
     flex-shrink: 0;
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
   }
-  .tag.keep { background: var(--green-soft); color: var(--green); border-color: transparent; }
-  .tag.warn { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
-  .tag.blue { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-  .table-wrap { max-height: 540px; overflow: auto; border: 1px solid var(--hairline); border-radius: 12px; }
-  .group-card { border: 1px solid var(--hairline); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
-  .group-head { background: var(--surface-2); padding: 9px 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; }
-  .empty { padding: 32px 16px; text-align: center; color: var(--muted); }
-  .banner { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .banner.warn { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--hairline); }
+  .tag.keep { background: var(--green-soft); color: var(--green); }
+  .tag.warn { background: var(--amber-soft); color: var(--amber); }
+  .tag.blue { background: var(--blue-soft); color: var(--blue); }
+  .tag.accent { background: var(--accent-soft); color: var(--accent); }
+  .tag.ts { background: transparent; color: var(--faint); font-weight: 400; padding: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
 
-  /* Apple Glass Floating Capsule & Sheet Modal */
+  .group-card {
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    margin-bottom: 10px;
+    overflow: hidden;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 150px;
+  }
+  .group-head { background: var(--surface-2); padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; border-bottom: 1px solid var(--hairline); }
+  .group-head .meta { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .empty { padding: 44px 16px; text-align: center; color: var(--muted); font-size: 12.5px; }
+  .empty .mono { color: var(--text-2); }
+  .note { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+
+  /* App inspector */
+  .split { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(330px, 1fr); gap: 16px; align-items: start; }
+  .inspector { border: 1px solid var(--hairline); border-radius: var(--r); background: var(--surface); position: sticky; top: 12px; }
+  .inspector-head { padding: 16px 18px 14px; border-bottom: 1px solid var(--hairline); }
+  .inspector-title { font-family: var(--font-serif); font-size: 20px; font-weight: 500; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .purpose { margin-top: 12px; padding: 10px 12px; background: var(--surface-2); border-radius: 10px; font-size: 12px; color: var(--text-2); line-height: 1.6; }
+  .stat-row { display: flex; gap: 20px; margin-top: 12px; }
+  .stat .k { font-size: 11px; color: var(--muted); }
+  .stat .v { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .inspector-body { padding: 14px 18px 16px; }
+  .inspector .table-wrap { max-height: 360px; }
+
+  details.llm summary { cursor: default; color: var(--muted); font-size: 12px; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+  details.llm summary::-webkit-details-marker { display: none; }
+  details.llm summary::before { content: "›"; display: inline-block; transition: transform 0.18s var(--ease); font-size: 14px; }
+  details.llm[open] summary::before { transform: rotate(90deg); }
+
+  .engine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .engine { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--surface-2); }
+  .engine .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; background: var(--amber); }
+  .engine .dot.ok { background: var(--green); }
+  .engine .name { font-weight: 600; }
+  .engine .ver { font-size: 11.5px; color: var(--muted); }
+
+  /* ==========================================================================
+     Floating capsule, modal, toast
+     ========================================================================== */
   .floating-bar {
     position: fixed;
-    bottom: 20px;
-    left: calc(258px + (100% - 258px) / 2);
-    transform: translateX(-50%);
+    bottom: 24px;
+    left: calc(var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2);
+    transform: translate(-50%, 16px);
     background: var(--glass);
     backdrop-filter: saturate(180%) blur(24px);
     -webkit-backdrop-filter: saturate(180%) blur(24px);
     border: 1px solid var(--hairline-strong);
     box-shadow: var(--shadow-float);
     border-radius: 999px;
-    padding: 8px 10px 8px 18px;
-    display: none;
+    padding: 6px 6px 6px 18px;
+    display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     z-index: 900;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.28s var(--ease), visibility 0s linear 0.28s;
+    white-space: nowrap;
   }
-  .floating-bar.show { display: flex; }
-  .floating-bar .btn.sm { border-radius: 999px; padding: 6px 13px; }
+  .floating-bar.show { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0); transition: opacity 0.2s ease, transform 0.28s var(--ease); }
+  .floating-bar .fb-text { font-weight: 600; font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .floating-bar .fb-text .dim { color: var(--muted); font-weight: 500; }
+  .floating-bar .btn { border-radius: 999px; }
 
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.44);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    display: none;
+    background: rgba(20, 20, 19, 0.28);
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: 20px;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, visibility 0s linear 0.18s;
   }
-  .modal-backdrop.show { display: flex; }
+  .modal-backdrop.show { opacity: 1; visibility: visible; transition: opacity 0.18s ease; }
   .modal {
     background: var(--surface);
     border: 1px solid var(--hairline-strong);
-    border-radius: 18px;
-    max-width: 600px;
+    border-radius: 20px;
+    max-width: 620px;
     width: 100%;
-    padding: 22px 24px;
+    padding: 24px 26px 20px;
     box-shadow: var(--shadow-float);
+    transform: translateY(8px) scale(0.98);
+    transition: transform 0.26s var(--ease);
   }
-  .modal h3 { margin: 0 0 8px; font-size: 16.5px; font-weight: 700; letter-spacing: -0.02em; }
-  .modal-list { max-height: 240px; overflow: auto; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 10px; padding: 10px 12px; margin: 12px 0 16px; font-size: 11.5px; }
+  .modal-backdrop.show .modal { transform: none; }
+  .modal h3 { margin: 0 0 8px; font-family: var(--font-serif); font-size: 21px; font-weight: 500; letter-spacing: -0.015em; }
+  .modal-desc { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+  .modal-list { max-height: 260px; overflow: auto; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; margin: 14px 0 18px; font-size: 11.5px; line-height: 1.7; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
   .toast {
     position: fixed;
-    right: 20px;
-    bottom: 22px;
-    background: var(--surface-elevated);
-    color: var(--text);
-    border: 1px solid var(--hairline-strong);
-    padding: 10px 15px;
+    right: 24px;
+    bottom: 24px;
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 16px;
     border-radius: 12px;
     font-size: 12.5px;
     font-weight: 500;
     box-shadow: var(--shadow-float);
-    display: none;
     z-index: 1100;
     max-width: 420px;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.26s var(--ease);
   }
-  .toast.show { display: block; }
-  .hidden { display: none !important; }
+  .toast.show { opacity: 1; transform: none; }
+
+  section.view { animation: fade-in 0.22s var(--ease); }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 900px) {
+    .split { grid-template-columns: 1fr; }
+    .inspector { position: static; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition-duration: 0.01ms !important; }
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" d="M12 9.4V1.8M13.56 9.92l3.01-3.99M14.25 10.7l6.58-3.8M14.58 12.32l4.96.61M14.25 13.3l6.58 3.8M13.02 14.39L14.97 19M12 14.6v7.6M10.44 14.08l-3.01 3.99M9.75 13.3l-6.58 3.8M9.42 11.68l-4.96-.61M9.75 10.7L3.17 6.9M10.98 9.61L9.03 5"/></symbol>
+    <symbol id="i-overview" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="8" rx="2"/><rect x="13.5" y="3.5" width="7" height="5" rx="2"/><rect x="13.5" y="11.5" width="7" height="9" rx="2"/><rect x="3.5" y="14.5" width="7" height="6" rx="2"/></g></symbol>
+    <symbol id="i-system" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9.5 7V4.8c0-.7.6-1.3 1.3-1.3h2.4c.7 0 1.3.6 1.3 1.3V7"/><path d="M6 7l.9 12.2c.1 1 .9 1.8 1.9 1.8h6.4c1 0 1.8-.8 1.9-1.8L18 7"/><path d="M10 11v6M14 11v6"/></g></symbol>
+    <symbol id="i-apps" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2.2"/></g></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5"/><path d="M16 7l5 5-5 5"/><path d="M13.5 4.5l-3 15"/></g></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/></g></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M3.5 7.5A2 2 0 0 1 5.5 5.5h3.6l2 2.2h7.4a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8z"/><path d="M14 3.5V8h4.5"/></g></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 21s7.5-3.6 7.5-9.4V5.8L12 3 4.5 5.8v5.8C4.5 17.4 12 21 12 21z"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-reveal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5L11 13"/><path d="M18 14v3.5a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2H10"/></g></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5A8 8 0 0 0 6.3 6.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 12.5a8 8 0 0 0 13.7 5.2L20 15.5"/><path d="M20 20v-4.5h-4.5"/></g></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2"/><path d="M6 7l.9 12.2a2 2 0 0 0 2 1.8h6.2a2 2 0 0 0 2-1.8L18 7"/></g></symbol>
+  </defs>
+</svg>
+
 <div class="app-shell">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-logo">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/>
-          <path d="M18.5 14l.8 2.2L21.5 17l-2.2.8-.8 2.2-.8-2.2L15.5 17l2.2-.8z"/>
-        </svg>
-      </div>
+      <span class="brand-mark"><svg><use href="#i-spark"/></svg></span>
       <div>
-        <h1>TidyMac 工作台</h1>
-        <p>Mole · Pearcleaner · kondo · czkawka</p>
+        <div class="brand-name">TidyMac</div>
+        <div class="brand-sub">安静、可撤回的 Mac 整理</div>
       </div>
     </div>
 
     <nav class="nav" id="nav">
-      <div class="nav-section">概览与体检</div>
-      <button data-tab="overview" class="active">
-        <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-          <span>只读体检总览</span>
-        </span>
+      <div class="nav-section">概览</div>
+      <button data-tab="overview" data-title="只读体检总览" class="active">
+        <span class="nav-left"><svg><use href="#i-overview"/></svg><span>体检总览</span></span>
         <span class="pill" id="pill-overview">就绪</span>
       </button>
 
-      <div class="nav-section">空间分析与清理</div>
-      <button data-tab="system">
-        <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
-          <span>系统残留 &amp; 孤立配置</span>
-        </span>
-        <span class="pill" id="pill-system">-</span>
+      <div class="nav-section">空间清理</div>
+      <button data-tab="system" data-title="系统残留与孤立配置">
+        <span class="nav-left"><svg><use href="#i-system"/></svg><span>系统残留</span></span>
+        <span class="pill" id="pill-system">–</span>
       </button>
-      <button data-tab="apps">
-        <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
-          <span>所有应用 &amp; 关联空间</span>
-        </span>
-        <span class="pill" id="pill-apps">-</span>
+      <button data-tab="apps" data-title="所有应用与关联空间">
+        <span class="nav-left"><svg><use href="#i-apps"/></svg><span>应用与关联空间</span></span>
+        <span class="pill" id="pill-apps">–</span>
       </button>
-      <button data-tab="projects">
-        <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-          <span>AI 试水项目 &amp; 依赖</span>
-        </span>
-        <span class="pill" id="pill-projects">-</span>
+      <button data-tab="projects" data-title="AI 试水工程与依赖">
+        <span class="nav-left"><svg><use href="#i-code"/></svg><span>工程与依赖</span></span>
+        <span class="pill" id="pill-projects">–</span>
       </button>
-      <button data-tab="dupes">
-        <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span>文档查重 &amp; 大文件</span>
-        </span>
-        <span class="pill" id="pill-dupes">-</span>
+      <button data-tab="dupes" data-title="文档查重与大文件">
+        <span class="nav-left"><svg><use href="#i-copy"/></svg><span>查重与大文件</span></span>
+        <span class="pill" id="pill-dupes">–</span>
       </button>
 
-      <div class="nav-section">智能整理</div>
-      <button data-tab="organize">
-        <span class="nav-left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          <span>自动归档 &amp; OCR分拣</span>
-        </span>
-        <span class="pill" id="pill-organize">-</span>
+      <div class="nav-section">整理</div>
+      <button data-tab="organize" data-title="自动归档与 OCR 分拣">
+        <span class="nav-left"><svg><use href="#i-folder"/></svg><span>自动归档</span></span>
+        <span class="pill" id="pill-organize">–</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
-      <strong>
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        废纸篓与只读保护
-      </strong>
-      <div>自动恢复缓存 · 清理后局部增量更新 · 所有删除默认进入 macOS 废纸篓</div>
+      <strong><svg width="13" height="13"><use href="#i-shield"/></svg>只读预览 · 废纸篓保护</strong>
+      所有扫描均为 Dry-Run；删除一律移入废纸篓，可随时放回。
     </div>
   </aside>
 
-  <div class="main-wrap">
+  <div class="main-wrap" id="main-wrap">
     <header class="topbar">
       <div class="topbar-left">
-        <h2 class="page-heading" id="page-heading">只读体检总览</h2>
+        <h1 class="page-heading" id="page-heading">只读体检总览</h1>
         <div class="status-strip">
-          <span class="badge" id="disk-badge">磁盘可用: 检测中...</span>
-          <span class="badge info" id="reclaim-badge">可释放空间: 0 B</span>
-          <span class="badge" id="cache-badge">缓存状态: 检查中...</span>
-          <span class="badge" id="fda-badge">权限检测中...</span>
+          <span class="badge" id="disk-badge">磁盘检测中…</span>
+          <span class="badge info" id="reclaim-badge">可释放 0 B</span>
+          <span class="badge" id="cache-badge">缓存检查中…</span>
+          <span class="badge" id="fda-badge">权限检测中…</span>
         </div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn primary pill-cta" id="btn-full-checkup" onclick="startCheckup()">重新只读体检 (Dry-Run)</button>
-      </div>
+      <button class="btn primary cta" id="btn-full-checkup" onclick="startCheckup()">
+        <svg><use href="#i-spark"/></svg><span id="cta-label">重新体检</span><span class="cta-sub">Dry-Run</span>
+      </button>
     </header>
 
-    <main class="main">
+    <main class="main" id="main">
       <div id="checkup-progress-card" class="progress-card hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong id="checkup-progress-title">正在并行运行只读体检...</strong>
+        <div class="progress-head">
+          <span class="progress-title"><svg><use href="#i-spark"/></svg><span id="checkup-progress-title">正在并行运行只读体检…</span></span>
           <span id="checkup-progress-count" class="num" style="color:var(--muted);">0 / 9</span>
         </div>
-        <div id="checkup-progress-sub" style="font-size:12px; color:var(--muted); margin-top:3px;"></div>
+        <div id="checkup-progress-sub" class="progress-sub"></div>
         <div class="progress-track"><div class="progress-fill" id="checkup-progress-fill"></div></div>
       </div>
 
-      <div id="fda-banner" class="banner warn hidden">
+      <div id="fda-banner" class="banner hidden">
         <div>
-          <strong>权限说明：</strong>未检测到「完全磁盘访问权限」（仅影响 Mole 扫描废纸篓与 Safari/Mail 缓存，其余清理与整理均正常）。<br />
-          <span style="font-size:11.5px; opacity:0.9;">若你已在系统设置里打开过 TidyMac 开关：因为桌面版刚更新过本地签名，请先在系统设置列表选中 <strong>TidyMac</strong> 点左下角 <strong>「-」移除</strong>，再点 <strong>「+」重新添加</strong> 并按 <strong>⌘Q 完全退出后重开</strong> 即可生效。</span>
+          <strong>未检测到「完全磁盘访问权限」</strong>，仅影响 Mole 扫描废纸篓与 Safari / Mail 缓存，其余功能正常。
+          <div class="fine">若已在系统设置中开启：先在列表中选中 TidyMac 点「−」移除，再点「+」重新添加，然后 ⌘Q 完全退出并重开。</div>
         </div>
-        <div style="display:flex; gap:6px; flex-shrink:0;">
+        <div class="actions" style="flex-shrink:0;">
           <button class="btn sm" onclick="loadStatus(true)">重新检测</button>
           <button class="btn sm" onclick="openFdaSettings()">前往系统设置</button>
         </div>
       </div>
 
-      <!-- TAB 1: OVERVIEW -->
-      <section id="tab-overview">
-        <div class="hero-bento">
+      <!-- ============ OVERVIEW ============ -->
+      <section id="tab-overview" class="view">
+        <div class="hero">
           <div class="hero-top">
             <div>
-              <div class="hero-kicker">macOS 储存空间体检摘要 · DRY-RUN</div>
+              <div class="hero-kicker">预计可释放空间 <span class="chip">DRY-RUN</span></div>
               <div class="hero-val" id="hero-reclaim-val">0 B</div>
             </div>
             <div class="hero-meta">
-              <div id="hero-disk-sub">正在检测磁盘可用容量...</div>
-              <div>可释放总计：<strong id="breakdown-total">-</strong>（不含未勾选的大文件与工程整包）</div>
+              <div id="hero-disk-sub">正在检测磁盘容量…</div>
+              <div>合计 <strong id="breakdown-total">–</strong> · 不含大文件与工程整包</div>
             </div>
           </div>
           <div class="breakdown-bar" id="breakdown-bar"></div>
-          <div class="legend" id="breakdown-legend">暂无扫描数据，点击右上角「重新只读体检 (Dry-Run)」即可生成。</div>
+          <div class="legend" id="breakdown-legend">暂无扫描数据。点击右上角「重新体检」即可生成。</div>
         </div>
 
         <div class="cards-grid">
           <div class="card" onclick="jumpTo('system','sys-mole')">
             <div class="card-head">
-              <div class="card-title-row">
-                <span class="bento-icon blue"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></span>
-                <span class="card-title">Mole 安全缓存与残留</span>
-              </div>
-              <span class="chevron">›</span>
+              <div class="card-title-row"><span class="ico accent"><svg><use href="#i-system"/></svg></span><span class="card-title">安全缓存与残留</span></div>
+              <svg class="chevron"><use href="#i-chevron"/></svg>
             </div>
-            <div class="card-val" id="ov-mole-val">待扫描</div>
-            <div class="card-sub" id="ov-mole-sub">点击体检或进入按需扫描</div>
+            <div class="card-val pending" id="ov-mole-val">待扫描</div>
+            <div class="card-sub" id="ov-mole-sub">Mole · 缓存与日志</div>
           </div>
           <div class="card" onclick="jumpTo('system','sys-orphans')">
             <div class="card-head">
-              <div class="card-title-row">
-                <span class="bento-icon amber"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-                <span class="card-title">Pearcleaner 孤立配置</span>
-              </div>
-              <span class="chevron">›</span>
+              <div class="card-title-row"><span class="ico blue"><svg><use href="#i-file"/></svg></span><span class="card-title">孤立配置</span></div>
+              <svg class="chevron"><use href="#i-chevron"/></svg>
             </div>
-            <div class="card-val" id="ov-orphan-val">待扫描</div>
-            <div class="card-sub" id="ov-orphan-sub">无主 Preferences / Support / Containers</div>
+            <div class="card-val pending" id="ov-orphan-val">待扫描</div>
+            <div class="card-sub" id="ov-orphan-sub">Pearcleaner · 无主偏好与容器</div>
           </div>
           <div class="card" onclick="activateTab('apps')">
             <div class="card-head">
-              <div class="card-title-row">
-                <span class="bento-icon green"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></span>
-                <span class="card-title">所有应用 &amp; 关联占用</span>
-              </div>
-              <span class="chevron">›</span>
+              <div class="card-title-row"><span class="ico green"><svg><use href="#i-apps"/></svg></span><span class="card-title">应用与关联占用</span></div>
+              <svg class="chevron"><use href="#i-chevron"/></svg>
             </div>
-            <div class="card-val" id="ov-apps-val">待扫描</div>
-            <div class="card-sub" id="ov-apps-sub">查看应用用处、缓存与数据分布</div>
+            <div class="card-val pending" id="ov-apps-val">待扫描</div>
+            <div class="card-sub" id="ov-apps-sub">用途、缓存与数据分布</div>
           </div>
           <div class="card" onclick="jumpTo('projects','proj-kondo')">
             <div class="card-head">
-              <div class="card-title-row">
-                <span class="bento-icon teal"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
-                <span class="card-title">kondo 工程依赖产物</span>
-              </div>
-              <span class="chevron">›</span>
+              <div class="card-title-row"><span class="ico teal"><svg><use href="#i-code"/></svg></span><span class="card-title">工程依赖产物</span></div>
+              <svg class="chevron"><use href="#i-chevron"/></svg>
             </div>
-            <div class="card-val" id="ov-kondo-val">待扫描</div>
-            <div class="card-sub" id="ov-kondo-sub">只清 node_modules/.venv/target，保留源码</div>
+            <div class="card-val pending" id="ov-kondo-val">待扫描</div>
+            <div class="card-sub" id="ov-kondo-sub">kondo · 只清依赖，保留源码</div>
           </div>
           <div class="card" onclick="jumpTo('dupes','dup-exact')">
             <div class="card-head">
-              <div class="card-title-row">
-                <span class="bento-icon purple"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
-                <span class="card-title">czkawka 文档查重 &amp; 相似图</span>
-              </div>
-              <span class="chevron">›</span>
+              <div class="card-title-row"><span class="ico purple"><svg><use href="#i-copy"/></svg></span><span class="card-title">重复文档与相似图</span></div>
+              <svg class="chevron"><use href="#i-chevron"/></svg>
             </div>
-            <div class="card-val" id="ov-dupes-val">待扫描</div>
-            <div class="card-sub" id="ov-dupes-sub">Documents / Downloads / Desktop</div>
+            <div class="card-val pending" id="ov-dupes-val">待扫描</div>
+            <div class="card-sub" id="ov-dupes-sub">czkawka · 文稿 / 下载 / 桌面</div>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-head">
-            <h2>磁盘大目录透视（集成 Mole Analyze）</h2>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <input type="text" id="analyze-path" value="~/Library" style="width:240px;" />
-              <button class="btn sm" onclick="runMoleAnalyze()">透视目录占用</button>
+            <h2>目录占用透视 <span class="tag ts">Mole Analyze</span></h2>
+            <div class="actions">
+              <input type="text" id="analyze-path" value="~/Library" style="width:240px;" onkeydown="if(event.key==='Enter')runMoleAnalyze(document.getElementById('btn-analyze'))" />
+              <button class="btn sm" id="btn-analyze" onclick="runMoleAnalyze(this)">透视占用</button>
             </div>
           </div>
           <div class="panel-body" id="analyze-result">
-            <div class="empty">点击「透视目录占用」，调用 <span class="mono">mo analyze --json</span> 查看真实大目录与大文件排行。</div>
+            <div class="empty">输入目录后点击「透视占用」，通过 <span class="mono">mo analyze --json</span> 查看大目录与大文件排行。</div>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-head">
-            <h2>开源引擎与本机组件状态</h2>
-            <button class="btn sm" onclick="loadStatus(true)">刷新状态</button>
+            <h2>引擎与本机组件</h2>
+            <button class="btn sm ghost" onclick="loadStatus(true)"><svg><use href="#i-refresh"/></svg>刷新</button>
           </div>
-          <div class="panel-body" id="engine-status-body">检测中...</div>
+          <div class="panel-body" id="engine-status-body"><div class="empty">检测中…</div></div>
         </div>
       </section>
 
-    <!-- TAB 2: SYSTEM RESIDUALS (MOLE + PEARCLEANER) -->
-    <section id="tab-system" class="hidden">
-      <div class="subtabs">
-        <button class="active" data-sub="sys-mole" onclick="switchSub('system','sys-mole',this)">Mole 安全缓存 &amp; 残留</button>
-        <button data-sub="sys-orphans" onclick="switchSub('system','sys-orphans',this)">Pearcleaner 孤立配置文件 (Orphaned Files)</button>
-      </div>
+      <!-- ============ SYSTEM ============ -->
+      <section id="tab-system" class="view hidden">
+        <div class="subtabs">
+          <button class="active" data-sub="sys-mole" onclick="switchSub('system','sys-mole')">安全缓存与残留 <span class="eng">Mole</span></button>
+          <button data-sub="sys-orphans" onclick="switchSub('system','sys-orphans')">孤立配置文件 <span class="eng">Pearcleaner</span></button>
+        </div>
 
-      <div id="sys-mole" class="panel">
-        <div class="panel-head">
-          <h2>Mole 预览清单 <span class="tag" id="ts-mole">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn sm" onclick="scanMole()">重新扫描 Mole</button>
-            <button class="btn sm" onclick="selectFiltered('mole', true)">全选当前</button>
-            <button class="btn sm" onclick="selectFiltered('mole', false)">取消全选</button>
-            <button class="btn sm" onclick="whitelistMoleSelected()">加入白名单</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('mole')">移入废纸篓</button>
+        <div id="sys-mole" class="panel">
+          <div class="panel-head">
+            <h2>Mole 预览清单 <span class="tag ts" id="ts-mole">未扫描</span></h2>
+            <div class="actions">
+              <button class="btn sm" onclick="scanMole(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+              <button class="btn sm" onclick="whitelistMoleSelected()">加入白名单</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('mole')"><svg><use href="#i-trash"/></svg>移入废纸篓</button>
+            </div>
           </div>
-        </div>
-        <div class="panel-body">
-          <div class="toolbar">
-            <input type="search" id="mole-search" placeholder="筛选路径或应用名..." oninput="renderMole()" style="width:240px;" />
-            <select id="mole-cat" onchange="renderMole()"><option value="">全部分类</option></select>
-            <label><input type="checkbox" id="mole-min1mb" onchange="renderMole()" /> 仅显示 ≥ 1 MB</label>
-            <span id="mole-summary" style="margin-left:auto;color:var(--muted);"></span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-mole" title="全选 / 取消全选当前列表" onchange="selectFiltered('mole', this.checked)" /></th><th>类别</th><th>条目</th><th style="width:120px;">体积</th><th>路径</th><th style="width:80px;">操作</th></tr></thead>
-              <tbody id="mole-tbody"><tr><td colspan="6" class="empty">尚无数据，点击「重新扫描 Mole」查看检测结果。</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="sys-orphans" class="panel hidden">
-        <div class="panel-head">
-          <h2>孤立配置文件扫描（Pearcleaner 同源规则） <span class="tag" id="ts-orphans">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn sm" onclick="openPearcleanerApp()">打开 Pearcleaner.app</button>
-            <button class="btn sm" onclick="scanOrphans()">重新扫描孤立配置</button>
-            <button class="btn sm" onclick="selectFiltered('orphans', true)">全选当前</button>
-            <button class="btn sm" onclick="selectFiltered('orphans', false)">取消全选</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('orphans')">移入废纸篓</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="toolbar">
-            <input type="search" id="orphan-search" placeholder="筛选应用名 / Bundle ID / 路径..." oninput="renderOrphans()" style="width:240px;" />
-            <select id="orphan-cat" onchange="renderOrphans()"><option value="">全部位置</option></select>
-            <span id="orphan-summary" style="margin-left:auto;color:var(--muted);"></span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-orphans" title="全选 / 取消全选当前列表" onchange="selectFiltered('orphans', this.checked)" /></th><th>来源应用 (推测)</th><th>位置类别</th><th style="width:120px;">占用体积</th><th>路径与判定依据</th><th style="width:80px;">操作</th></tr></thead>
-              <tbody id="orphan-tbody"><tr><td colspan="6" class="empty">点击「重新扫描孤立配置」检索 Preferences / LaunchAgents / Application Support / Containers 中的无主配置。</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: INSTALLED APPS & PURPOSE -->
-    <section id="tab-apps" class="hidden">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>所有已安装应用与关联目录用途 <span class="tag" id="ts-apps">未扫描</span></h2>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="apps-include-sys" onchange="scanApps()" /> 显示系统内置应用</label>
-            <button class="btn sm primary" onclick="scanApps()">重新扫描应用</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="toolbar">
-            <input type="search" id="apps-search" placeholder="搜索应用名、用处或 Bundle ID..." oninput="renderApps()" style="width:260px;" />
-            <select id="apps-cat" onchange="renderApps()"><option value="">全部分类</option></select>
-            <span id="apps-summary" style="margin-left:auto;color:var(--muted);"></span>
-          </div>
-          <div style="display:grid; grid-template-columns: 1.25fr 1fr; gap:14px; align-items:start;">
-            <div class="table-wrap" style="max-height:560px;">
+          <div class="panel-body">
+            <div class="toolbar">
+              <input type="search" id="mole-search" placeholder="筛选路径或分类" oninput="refilter('mole')" style="width:240px;" />
+              <select id="mole-cat" onchange="refilter('mole', 0)"><option value="">全部分类</option></select>
+              <label class="check"><input type="checkbox" id="mole-min1mb" onchange="refilter('mole', 0)" /> 仅 ≥ 1 MB</label>
+              <span id="mole-summary" class="summary"></span>
+            </div>
+            <div class="table-wrap">
               <table>
-                <thead><tr><th>应用</th><th>分类与用处</th><th style="width:110px;">总占用</th><th style="width:90px;">可清缓存</th></tr></thead>
-                <tbody id="apps-tbody"><tr><td colspan="4" class="empty">点击「重新扫描应用」或运行全景体检查看本机应用与关联目录用途。</td></tr></tbody>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-mole" title="全选 / 取消全选当前列表" onchange="selectFiltered('mole', this.checked)" /></th><th>类别</th><th>条目</th><th style="width:130px;">体积</th><th>路径</th><th class="col-act"></th></tr></thead>
+                <tbody id="mole-tbody"><tr><td colspan="6" class="empty">尚无数据，点击「重新扫描」查看结果。</td></tr></tbody>
               </table>
             </div>
-            <div class="panel" style="margin:0; box-shadow:none;" id="app-inspector-box">
-              <div class="panel-head"><h2>应用详情与关联空间</h2></div>
-              <div class="panel-body" id="app-inspector-body">
-                <div class="empty">在左侧点击任意应用，查看它的具体用处以及对应的安装本体、缓存、容器、偏好配置等关联路径。</div>
+          </div>
+        </div>
+
+        <div id="sys-orphans" class="panel hidden">
+          <div class="panel-head">
+            <h2>孤立配置文件 <span class="tag ts" id="ts-orphans">未扫描</span></h2>
+            <div class="actions">
+              <button class="btn sm ghost" onclick="openPearcleanerApp()">打开 Pearcleaner</button>
+              <button class="btn sm" onclick="scanOrphans(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('orphans')"><svg><use href="#i-trash"/></svg>移入废纸篓</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="toolbar">
+              <input type="search" id="orphan-search" placeholder="筛选应用名 / Bundle ID / 路径" oninput="refilter('orphans')" style="width:260px;" />
+              <select id="orphan-cat" onchange="refilter('orphans', 0)"><option value="">全部位置</option></select>
+              <span id="orphan-summary" class="summary"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-orphans" title="全选 / 取消全选当前列表" onchange="selectFiltered('orphans', this.checked)" /></th><th>来源应用（推测）</th><th>位置</th><th style="width:130px;">体积</th><th>路径与判定依据</th><th class="col-act"></th></tr></thead>
+                <tbody id="orphan-tbody"><tr><td colspan="6" class="empty">点击「重新扫描」检索 Preferences / LaunchAgents / Application Support / Containers 中的无主配置。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ APPS ============ -->
+      <section id="tab-apps" class="view hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>已安装应用 <span class="tag ts" id="ts-apps">未扫描</span></h2>
+            <div class="actions">
+              <label class="check"><input type="checkbox" id="apps-include-sys" onchange="scanApps(null)" /> 显示系统内置应用</label>
+              <span class="sep"></span>
+              <button class="btn sm" onclick="scanApps(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="toolbar">
+              <input type="search" id="apps-search" placeholder="搜索应用名、用途或 Bundle ID" oninput="refilter('apps')" style="width:280px;" />
+              <select id="apps-cat" onchange="refilter('apps', 0)"><option value="">全部分类</option></select>
+              <span id="apps-summary" class="summary"></span>
+            </div>
+            <div class="split">
+              <div class="table-wrap" style="max-height:min(68vh, 680px);">
+                <table>
+                  <thead><tr><th style="width:34%;">应用</th><th>分类与用途</th><th style="width:108px;">总占用</th><th style="width:84px;">缓存</th></tr></thead>
+                  <tbody id="apps-tbody"><tr><td colspan="4" class="empty">点击「重新扫描」或运行全项体检，查看本机应用与关联目录。</td></tr></tbody>
+                </table>
+              </div>
+              <div class="inspector" id="app-inspector-box">
+                <div id="app-inspector-body"><div class="empty">在左侧选择一个应用，查看它的用途与关联路径。</div></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- TAB 4: PROJECTS (KONDO + ABANDONED AI) -->
-    <section id="tab-projects" class="hidden">
-      <div class="subtabs">
-        <button class="active" data-sub="proj-kondo" onclick="switchSub('projects','proj-kondo',this)">kondo 依赖与构建产物（只清依赖保留源码）</button>
-        <button data-sub="proj-abandoned" onclick="switchSub('projects','proj-abandoned',this)">废弃 AI 试水工程识别（整包移入废纸篓）</button>
-      </div>
+      <!-- ============ PROJECTS ============ -->
+      <section id="tab-projects" class="view hidden">
+        <div class="subtabs">
+          <button class="active" data-sub="proj-kondo" onclick="switchSub('projects','proj-kondo')">依赖与构建产物 <span class="eng">kondo</span></button>
+          <button data-sub="proj-abandoned" onclick="switchSub('projects','proj-abandoned')">废弃 AI 试水工程</button>
+        </div>
 
-      <div id="proj-kondo" class="panel">
-        <div class="panel-head">
-          <h2>kondo 依赖产物扫描 <span class="tag" id="ts-kondo">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn sm" onclick="scanKondo()">重新扫描依赖</button>
-            <button class="btn sm" onclick="selectFiltered('kondo', true)">全选当前</button>
-            <button class="btn sm" onclick="selectFiltered('kondo', false)">取消全选</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('kondo')">仅清理依赖（保留源码）</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="toolbar">
-            <input type="search" id="kondo-search" placeholder="筛选工程名或路径..." oninput="renderKondo()" style="width:240px;" />
-            <span id="kondo-summary" style="margin-left:auto;color:var(--muted);"></span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-kondo" title="全选 / 取消全选当前列表" onchange="selectFiltered('kondo', this.checked)" /></th><th>工程名 &amp; 路径</th><th>类型</th><th>最后活跃</th><th>依赖产物</th><th style="width:120px;">可释放体积</th><th style="width:80px;">操作</th></tr></thead>
-              <tbody id="kondo-tbody"><tr><td colspan="7" class="empty">点击「重新扫描依赖」识别 node_modules / .venv / target / dist 等依赖目录。</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="proj-abandoned" class="panel hidden">
-        <div class="panel-head">
-          <h2>废弃 AI 试水与半成品工程 <span class="tag" id="ts-abandoned">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn sm" onclick="scanAbandoned()">重新扫描半成品</button>
-            <button class="btn sm" onclick="selectFiltered('abandoned', true)">全选当前</button>
-            <button class="btn sm" onclick="selectAbandonedCandidates()">仅选疑似废弃项</button>
-            <button class="btn sm" onclick="selectFiltered('abandoned', false)">取消全选</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('abandoned')">整包移入废纸篓</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="toolbar">
-            <label><input type="checkbox" id="abandoned-only" checked onchange="renderAbandoned()" /> 仅显示疑似废弃/试水半成品</label>
-            <input type="search" id="abandoned-search" placeholder="筛选工程路径..." oninput="renderAbandoned()" style="width:220px;" />
-            <span id="abandoned-summary" style="margin-left:auto;color:var(--muted);"></span>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-abandoned" title="全选 / 取消全选当前列表" onchange="selectFiltered('abandoned', this.checked)" /></th><th>工程</th><th style="width:128px;">来源</th><th style="width:155px;">Git / 闲置天数</th><th style="width:116px;">总体积</th><th style="min-width:190px;">判定依据</th><th style="width:74px;">操作</th></tr></thead>
-              <tbody id="abandoned-tbody"><tr><td colspan="7" class="empty">点击「重新扫描半成品」分析 Codex / DeepSeek / Kimi / Cursor 等实验项目。</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 4: DUPES (CZKAWKA) -->
-    <section id="tab-dupes" class="hidden">
-      <div class="subtabs">
-        <button class="active" data-sub="dup-exact" onclick="switchSub('dupes','dup-exact',this)">完全重复文件 (czkawka dup)</button>
-        <button data-sub="dup-images" onclick="switchSub('dupes','dup-images',this)">相似图片 (czkawka image)</button>
-        <button data-sub="dup-big" onclick="switchSub('dupes','dup-big',this)">超大文件透视 (czkawka big)</button>
-      </div>
-
-      <div id="dup-exact" class="panel">
-        <div class="panel-head">
-          <h2>Documents / Downloads / Desktop 极速查重 <span class="tag" id="ts-dupes">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dup-docs-only" checked /> 聚焦 PDF/Office/压缩包</label>
-            <button class="btn sm" onclick="scanDupes()">重新查重</button>
-            <button class="btn sm" onclick="selectRecommendedDupes()">勾选建议清理副本</button>
-            <button class="btn sm" onclick="selectFiltered('dupes', false)">取消全选</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('dupes')">副本移入废纸篓</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div id="dup-summary" style="margin-bottom:10px;color:var(--muted);"></div>
-          <div id="dup-groups"><div class="empty">点击「重新查重」通过 BLAKE3 哈希精确定位完全重复的文档与压缩包。</div></div>
-        </div>
-      </div>
-
-      <div id="dup-images" class="panel hidden">
-        <div class="panel-head">
-          <h2>相似图片查重 <span class="tag" id="ts-images">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn sm" onclick="scanImages()">重新扫描图片</button>
-            <button class="btn sm" onclick="selectRecommendedImages()">勾选非推荐副本</button>
-            <button class="btn sm" onclick="selectFiltered('images', false)">取消全选</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('images')">移入废纸篓</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div id="img-summary" style="margin-bottom:10px;color:var(--muted);"></div>
-          <div id="img-groups"><div class="empty">点击「重新扫描图片」快速识别近似截图与重复照片。</div></div>
-        </div>
-      </div>
-
-      <div id="dup-big" class="panel hidden">
-        <div class="panel-head">
-          <h2>超大文件 Top 30/40 <span class="tag" id="ts-big">未扫描</span></h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn sm" onclick="scanBigFiles()">重新扫描大文件</button>
-            <button class="btn sm" onclick="selectFiltered('big', true)">全选当前</button>
-            <button class="btn sm" onclick="selectFiltered('big', false)">取消全选</button>
-            <button class="btn sm danger" onclick="confirmTrashSelected('big')">选中移入废纸篓</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-big" title="全选 / 取消全选当前列表" onchange="selectFiltered('big', this.checked)" /></th><th>文件名</th><th>类型</th><th style="width:120px;">体积</th><th>所在目录</th><th style="width:80px;">操作</th></tr></thead>
-              <tbody id="big-tbody"><tr><td colspan="6" class="empty">点击「重新扫描大文件」列出占用最大的文件。</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 5: ORGANIZE + VISION OCR -->
-    <section id="tab-organize" class="hidden">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>目标整理文件夹 <span class="tag" id="ts-organize">未扫描</span></h2>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-            <input type="text" id="org-dir" value="~/Downloads" style="width:260px;" />
-            <button class="btn sm" onclick="pickOrgFolder()">选择文件夹...</button>
-            <button class="btn sm" onclick="document.getElementById('org-dir').value='~/Downloads'; simOrganize()">下载目录</button>
-            <button class="btn sm" onclick="document.getElementById('org-dir').value='~/Desktop'; simOrganize()">桌面</button>
-            <button class="btn sm primary" onclick="simOrganize()">1. 模拟预览 (organize sim)</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <span id="org-sim-summary" style="color:var(--muted);">先运行「模拟预览」查看 YAML 规则命中结果与未命中杂乱文件。</span>
-            <div style="display:flex; gap:8px;">
-              <button class="btn sm" onclick="selectFiltered('org', true)">全选当前</button>
-              <button class="btn sm" onclick="selectFiltered('org', false)">取消全选</button>
-              <button class="btn sm primary" onclick="confirmApplyOrganize('org')">确认执行规则移动</button>
+        <div id="proj-kondo" class="panel">
+          <div class="panel-head">
+            <h2>依赖产物 <span class="tag ts" id="ts-kondo">未扫描</span></h2>
+            <div class="actions">
+              <button class="btn sm" onclick="scanKondo(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('kondo')"><svg><use href="#i-trash"/></svg>仅清理依赖</button>
             </div>
           </div>
-          <div class="table-wrap" style="max-height:300px;">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-org" title="全选 / 取消全选当前列表" onchange="selectFiltered('org', this.checked)" /></th><th>源文件</th><th>命中规则</th><th>目标位置</th><th>大小</th></tr></thead>
-              <tbody id="org-tbody"><tr><td colspan="5" class="empty">暂无模拟预览结果。</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>2. 未命中文件 · 按需 macOS Vision OCR / AI 智能分拣</h2>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <button class="btn sm primary" id="btn-ai-triage" onclick="runAiTriage()">对未命中文件执行 OCR/AI 识别</button>
-            <button class="btn sm" onclick="selectFiltered('ai', true)">全选当前</button>
-            <button class="btn sm" onclick="selectFiltered('ai', false)">取消全选</button>
-            <button class="btn sm primary" onclick="confirmApplyOrganize('ai')">确认移动并重命名</button>
-          </div>
-        </div>
-        <div class="panel-body">
-          <details style="margin-bottom:10px; font-size:12px;">
-            <summary style="cursor:pointer; color:var(--muted);">可选：配置本地 Ollama / OpenAI 兼容模型（留空则使用零联网本地 Vision OCR + 语义规则引擎）</summary>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-              <input type="text" id="llm-url" placeholder="例如 http://127.0.0.1:11434/v1" style="width:240px;" />
-              <input type="text" id="llm-model" placeholder="模型名如 qwen2.5:7b" style="width:160px;" />
-              <input type="text" id="llm-key" placeholder="API Key (本地可留空)" style="width:180px;" />
+          <div class="panel-body">
+            <div class="toolbar">
+              <input type="search" id="kondo-search" placeholder="筛选工程名或路径" oninput="refilter('kondo')" style="width:240px;" />
+              <span id="kondo-summary" class="summary"></span>
             </div>
-          </details>
-          <div id="ai-unmatched-info" style="margin-bottom:8px; color:var(--muted);"></div>
-          <div class="table-wrap" style="max-height:340px;">
-            <table>
-              <thead><tr><th style="width:32px;"><input type="checkbox" id="chk-all-ai" title="全选 / 取消全选当前列表" onchange="selectFiltered('ai', this.checked)" /></th><th>当前文件</th><th>建议归类目录（可编辑）</th><th>建议文件名（可编辑）</th><th>识别依据与摘要</th></tr></thead>
-              <tbody id="ai-tbody"><tr><td colspan="5" class="empty">运行上方「模拟预览」后，若存在未命中的杂乱文件或扫描版 PDF，点击「执行 OCR/AI 识别」生成可编辑预览。</td></tr></tbody>
-            </table>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-kondo" title="全选 / 取消全选当前列表" onchange="selectFiltered('kondo', this.checked)" /></th><th>工程</th><th>类型</th><th>最后活跃</th><th>依赖产物</th><th style="width:130px;">可释放</th><th class="col-act"></th></tr></thead>
+                <tbody id="kondo-tbody"><tr><td colspan="7" class="empty">点击「重新扫描」识别 node_modules / .venv / target / dist 等依赖目录。</td></tr></tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>最近整理记录（支持一键撤销回滚）</h2>
-          <button class="btn sm" onclick="loadOrgHistory()">刷新记录</button>
+        <div id="proj-abandoned" class="panel hidden">
+          <div class="panel-head">
+            <h2>半成品与试水工程 <span class="tag ts" id="ts-abandoned">未扫描</span></h2>
+            <div class="actions">
+              <button class="btn sm" onclick="scanAbandoned(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+              <button class="btn sm" onclick="selectAbandonedCandidates()">仅选疑似废弃</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('abandoned')"><svg><use href="#i-trash"/></svg>整包移入废纸篓</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="toolbar">
+              <label class="check"><input type="checkbox" id="abandoned-only" checked onchange="refilter('abandoned', 0)" /> 仅显示疑似废弃</label>
+              <input type="search" id="abandoned-search" placeholder="筛选工程路径" oninput="refilter('abandoned')" style="width:220px;" />
+              <span id="abandoned-summary" class="summary"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-abandoned" title="全选 / 取消全选当前列表" onchange="selectFiltered('abandoned', this.checked)" /></th><th>工程</th><th style="width:120px;">来源</th><th style="width:150px;">Git / 闲置</th><th style="width:120px;">总体积</th><th style="min-width:190px;">判定依据</th><th class="col-act"></th></tr></thead>
+                <tbody id="abandoned-tbody"><tr><td colspan="7" class="empty">点击「重新扫描」分析 Codex / DeepSeek / Kimi / Cursor 等实验项目。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <div class="panel-body" id="org-history-body"><div class="empty">暂无执行记录。</div></div>
-      </div>
-    </section>
-  </main>
+      </section>
+
+      <!-- ============ DUPES ============ -->
+      <section id="tab-dupes" class="view hidden">
+        <div class="subtabs">
+          <button class="active" data-sub="dup-exact" onclick="switchSub('dupes','dup-exact')">完全重复</button>
+          <button data-sub="dup-images" onclick="switchSub('dupes','dup-images')">相似图片</button>
+          <button data-sub="dup-big" onclick="switchSub('dupes','dup-big')">超大文件</button>
+        </div>
+
+        <div id="dup-exact" class="panel">
+          <div class="panel-head">
+            <h2>文稿 / 下载 / 桌面查重 <span class="tag ts" id="ts-dupes">未扫描</span></h2>
+            <div class="actions">
+              <label class="check"><input type="checkbox" id="dup-docs-only" checked /> 聚焦 PDF / Office / 压缩包</label>
+              <span class="sep"></span>
+              <button class="btn sm" onclick="scanDupes(this)"><svg><use href="#i-refresh"/></svg>重新查重</button>
+              <button class="btn sm" onclick="selectRecommendedDupes()">勾选建议副本</button>
+              <button class="btn sm ghost" onclick="selectFiltered('dupes', false)">取消勾选</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('dupes')"><svg><use href="#i-trash"/></svg>副本移入废纸篓</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="dup-summary" class="note"></div>
+            <div id="dup-groups"><div class="empty">点击「重新查重」，通过 BLAKE3 哈希精确定位完全重复的文档与压缩包。</div></div>
+          </div>
+        </div>
+
+        <div id="dup-images" class="panel hidden">
+          <div class="panel-head">
+            <h2>相似图片 <span class="tag ts" id="ts-images">未扫描</span></h2>
+            <div class="actions">
+              <button class="btn sm" onclick="scanImages(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+              <button class="btn sm" onclick="selectRecommendedImages()">勾选非推荐副本</button>
+              <button class="btn sm ghost" onclick="selectFiltered('images', false)">取消勾选</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('images')"><svg><use href="#i-trash"/></svg>移入废纸篓</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="img-summary" class="note"></div>
+            <div id="img-groups"><div class="empty">点击「重新扫描」，识别近似截图与重复照片。</div></div>
+          </div>
+        </div>
+
+        <div id="dup-big" class="panel hidden">
+          <div class="panel-head">
+            <h2>超大文件 Top 40 <span class="tag ts" id="ts-big">未扫描</span></h2>
+            <div class="actions">
+              <button class="btn sm" onclick="scanBigFiles(this)"><svg><use href="#i-refresh"/></svg>重新扫描</button>
+              <button class="btn sm danger" onclick="confirmTrashSelected('big')"><svg><use href="#i-trash"/></svg>移入废纸篓</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-big" title="全选 / 取消全选当前列表" onchange="selectFiltered('big', this.checked)" /></th><th>文件名</th><th>类型</th><th style="width:130px;">体积</th><th>所在目录</th><th class="col-act"></th></tr></thead>
+                <tbody id="big-tbody"><tr><td colspan="6" class="empty">点击「重新扫描」列出占用最大的文件。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ORGANIZE ============ -->
+      <section id="tab-organize" class="view hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h2><span class="tag accent">1</span> 规则模拟 <span class="tag ts" id="ts-organize">未扫描</span></h2>
+            <div class="actions">
+              <input type="text" id="org-dir" value="~/Downloads" style="width:240px;" onkeydown="if(event.key==='Enter')simOrganize()" />
+              <button class="btn sm ghost" onclick="pickOrgFolder()">选择…</button>
+              <button class="btn sm ghost" onclick="setOrgDir('~/Downloads')">下载</button>
+              <button class="btn sm ghost" onclick="setOrgDir('~/Desktop')">桌面</button>
+              <span class="sep"></span>
+              <button class="btn sm primary" id="btn-org-sim" onclick="simOrganize(this)">模拟预览</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="toolbar">
+              <span id="org-sim-summary" style="color:var(--muted);">先运行「模拟预览」，查看 YAML 规则命中结果与未命中文件。</span>
+              <span class="summary"><button class="btn sm primary" onclick="confirmApplyOrganize('org')">确认执行规则移动</button></span>
+            </div>
+            <div class="table-wrap" style="max-height:340px;">
+              <table>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-org" title="全选 / 取消全选当前列表" onchange="selectFiltered('org', this.checked)" /></th><th>源文件</th><th>命中规则</th><th>目标位置</th><th>大小</th></tr></thead>
+                <tbody id="org-tbody"><tr><td colspan="5" class="empty">暂无模拟预览结果。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2><span class="tag accent">2</span> 未命中文件 · Vision OCR / AI 分拣</h2>
+            <div class="actions">
+              <button class="btn sm" id="btn-ai-triage" onclick="runAiTriage(this)"><svg><use href="#i-spark"/></svg>执行 OCR / AI 识别</button>
+              <button class="btn sm primary" onclick="confirmApplyOrganize('ai')">确认移动并重命名</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <details class="llm" style="margin-bottom:12px;">
+              <summary>可选：接入本地 Ollama / OpenAI 兼容模型（留空则使用本地 Vision OCR + 语义规则）</summary>
+              <div class="actions" style="margin-top:10px;">
+                <input type="text" id="llm-url" placeholder="http://127.0.0.1:11434/v1" style="width:240px;" />
+                <input type="text" id="llm-model" placeholder="模型名，如 qwen2.5:7b" style="width:170px;" />
+                <input type="text" id="llm-key" placeholder="API Key（本地可留空）" style="width:180px;" />
+              </div>
+            </details>
+            <div id="ai-unmatched-info" class="note"></div>
+            <div class="table-wrap" style="max-height:380px;">
+              <table>
+                <thead><tr><th class="col-chk"><input type="checkbox" id="chk-all-ai" title="全选 / 取消全选当前列表" onchange="selectFiltered('ai', this.checked)" /></th><th>当前文件</th><th>建议目录（可编辑）</th><th>建议文件名（可编辑）</th><th>识别依据</th></tr></thead>
+                <tbody id="ai-tbody"><tr><td colspan="5" class="empty">运行「模拟预览」后，若存在未命中文件或扫描版 PDF，点击「执行 OCR / AI 识别」生成可编辑建议。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>整理记录 <span class="tag ts">支持一键撤销</span></h2>
+            <button class="btn sm ghost" onclick="loadOrgHistory()"><svg><use href="#i-refresh"/></svg>刷新</button>
+          </div>
+          <div class="panel-body" id="org-history-body"><div class="empty">暂无执行记录。</div></div>
+        </div>
+      </section>
+    </main>
   </div>
 </div>
 
 <div class="floating-bar" id="floating-bar">
-  <span id="floating-bar-text" style="font-weight:600;">已勾选 0 项</span>
-  <button class="btn sm" onclick="clearCurrentSelection()">取消勾选</button>
+  <span class="fb-text" id="floating-bar-text">已勾选 0 项</span>
+  <button class="btn sm ghost" onclick="clearCurrentSelection()">取消勾选</button>
   <button class="btn sm hidden" id="floating-wl-btn" onclick="whitelistMoleSelected()">加入白名单</button>
-  <button class="btn sm danger" onclick="trashCurrentBucket()">移入废纸篓</button>
+  <button class="btn sm danger solid" onclick="trashCurrentBucket()"><svg><use href="#i-trash"/></svg>移入废纸篓</button>
 </div>
 
 <div class="modal-backdrop" id="confirm-modal">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h3 id="modal-title">确认操作</h3>
-    <div id="modal-desc" style="color:var(--muted);"></div>
+    <div id="modal-desc" class="modal-desc"></div>
     <div class="modal-list mono" id="modal-list"></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal()">取消</button>
-      <button class="btn danger" id="modal-confirm-btn">确认执行</button>
+      <button class="btn danger solid" id="modal-confirm-btn">确认执行</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+'use strict';
+/* ==========================================================================
+   State
+   ========================================================================== */
+const PAGE = 300;
 const state = {
   activeTab: 'overview',
   activeSub: { system: 'sys-mole', projects: 'proj-kondo', dupes: 'dup-exact' },
-  mole: [],
-  orphans: [],
-  apps: [],
+  mole: [], orphans: [], apps: [], kondo: [], abandoned: [], dupes: [], images: [], big: [],
+  orgMoves: [], orgUnmatched: [], aiSuggestions: [],
   selectedAppId: null,
   appPathSelected: new Set(),
-  kondo: [],
-  abandoned: [],
-  dupes: [],
-  images: [],
-  big: [],
-  orgMoves: [],
-  orgUnmatched: [],
-  aiSuggestions: [],
   timestamps: {},
+  versions: {},
+  limits: { mole: PAGE, orphans: PAGE, apps: PAGE, kondo: PAGE, abandoned: PAGE },
   selected: {
-    mole: new Set(),
-    orphans: new Set(),
-    kondo: new Set(),
-    abandoned: new Set(),
-    dupes: new Set(),
-    images: new Set(),
-    big: new Set(),
-    org: new Set(),
-    ai: new Set(),
+    mole: new Set(), orphans: new Set(), kondo: new Set(), abandoned: new Set(),
+    dupes: new Set(), images: new Set(), big: new Set(), org: new Set(), ai: new Set(),
   },
-  totals: { mole: 0, orphans: 0, kondo: 0, dupes: 0, images: 0 }
+  totals: { mole: 0, orphans: 0, kondo: 0, dupes: 0, images: 0 },
 };
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
+const $ = (id) => document.getElementById(id);
+const nowTs = () => Math.floor(Date.now() / 1000);
+const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ESC_MAP[c]); }
 
 function humanBytes(bytes) {
   let n = Math.max(0, Number(bytes || 0));
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   for (const u of units) {
-    if (n < 1024 || u === 'TB') return u === 'B' ? `${Math.round(n)} B` : `${n.toFixed(2)} ${u}`;
+    if (n < 1024 || u === 'TB') return u === 'B' ? `${Math.round(n)} B` : `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)} ${u}`;
     n /= 1024;
   }
   return `${n} B`;
 }
-
 function relativeTime(ts) {
   if (!ts) return '未扫描';
-  const diff = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+  const diff = Math.max(0, nowTs() - ts);
   if (diff < 60) return '刚刚';
   if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
-  return new Date(ts * 1000).toLocaleString();
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} 天前`;
+  return new Date(ts * 1000).toLocaleDateString();
+}
+function maxOf(list, fn) { let m = 1; for (const x of list) { const v = fn(x) || 0; if (v > m) m = v; } return m; }
+function sumOf(list, fn) { let t = 0; for (const x of list) t += fn(x) || 0; return t; }
+const pctOf = (v, max) => Math.max(2, Math.round(((v || 0) / max) * 100));
+const sizeCell = (human, bytes, max) => `<td class="size-cell">${esc(human)}<div class="size-bar"><div style="width:${pctOf(bytes, max)}%"></div></div></td>`;
+const revealBtn = (path) => `<td class="col-act"><button class="btn icon ghost" data-reveal="${esc(path)}" title="在 Finder 中显示"><svg><use href="#i-reveal"/></svg></button></td>`;
+const chkCell = (bucket, key) => `<td class="col-chk"><input type="checkbox" data-sel="${bucket}" data-key="${esc(key)}" ${state.selected[bucket].has(key) ? 'checked' : ''} /></td>`;
+const selCls = (bucket, key) => (state.selected[bucket].has(key) ? ' class="is-selected"' : '');
+const emptyRow = (cols, text) => `<tr><td colspan="${cols}" class="empty">${text}</td></tr>`;
+function moreRow(bucket, remaining, cols) {
+  if (remaining <= 0) return '';
+  return `<tr class="more-row"><td colspan="${cols}"><button class="btn sm ghost" data-more="${bucket}">再显示 ${Math.min(PAGE, remaining)} 项 · 剩余 ${remaining}</button></td></tr>`;
+}
+function setCardVal(id, text, pending = false) {
+  const el = $(id);
+  el.textContent = text;
+  el.classList.toggle('pending', pending);
 }
 
 function showToast(msg, ms = 3200) {
-  const el = document.getElementById('toast');
+  const el = $('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(showToast._t);
@@ -1195,43 +1235,93 @@ async function api(url, method = 'GET', body = null) {
     opts.body = JSON.stringify(body);
   }
   const resp = await fetch(url, opts);
-  const data = await resp.json();
+  let data;
+  try { data = await resp.json(); } catch (e) { throw new Error(`HTTP ${resp.status}`); }
   if (!resp.ok && !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
   return data;
 }
 
+/** Disable a button and show a spinner while `fn` runs. */
+async function withBusy(btn, label, fn) {
+  if (btn && btn.disabled) return;
+  const prev = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spinner"></span>${esc(label)}`; }
+  try { return await fn(); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = prev; } }
+}
+
+/* ==========================================================================
+   Render scheduler — only paint what's visible, batch in one frame
+   ========================================================================== */
+const VIEW_OF = {
+  mole: ['system', 'sys-mole'], orphans: ['system', 'sys-orphans'], apps: ['apps', null],
+  kondo: ['projects', 'proj-kondo'], abandoned: ['projects', 'proj-abandoned'],
+  dupes: ['dupes', 'dup-exact'], images: ['dupes', 'dup-images'], big: ['dupes', 'dup-big'],
+  org: ['organize', null], ai: ['organize', null],
+};
+const dirty = new Set();
+let rafId = 0;
+function isVisible(k) {
+  const [tab, sub] = VIEW_OF[k];
+  return state.activeTab === tab && (!sub || state.activeSub[tab] === sub);
+}
+function requestRender(k) {
+  dirty.add(k);
+  if (isVisible(k) && !rafId) rafId = requestAnimationFrame(flushRenders);
+}
+function flushRenders() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+  for (const k of [...dirty]) {
+    if (isVisible(k)) { dirty.delete(k); RENDER[k](); }
+  }
+}
+function renderNow(k) { dirty.delete(k); if (isVisible(k)) RENDER[k](); else dirty.add(k); }
+
+const refilterTimers = {};
+function refilter(k, delay = 120) {
+  clearTimeout(refilterTimers[k]);
+  refilterTimers[k] = setTimeout(() => {
+    if (k in state.limits) state.limits[k] = PAGE;
+    renderNow(k);
+  }, delay);
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
 function activateTab(tab) {
+  if (state.activeTab !== tab) $('main-wrap').scrollTop = 0;
   state.activeTab = tab;
-  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.querySelectorAll('main > section').forEach(sec => sec.classList.toggle('hidden', sec.id !== `tab-${tab}`));
-  const activeBtn = document.querySelector(`#nav button[data-tab="${tab}"] .nav-left span`);
-  if (activeBtn) {
-    document.getElementById('page-heading').textContent = activeBtn.textContent.trim();
-  }
+  let title = '';
+  document.querySelectorAll('#nav button').forEach((b) => {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('active', on);
+    if (on) title = b.dataset.title;
+  });
+  document.querySelectorAll('#main > section').forEach((sec) => sec.classList.toggle('hidden', sec.id !== `tab-${tab}`));
+  if (title) $('page-heading').textContent = title;
+  flushRenders();
   updateFloatingBar();
 }
+document.querySelectorAll('#nav button').forEach((btn) => btn.addEventListener('click', () => activateTab(btn.dataset.tab)));
 
-document.querySelectorAll('#nav button').forEach(btn => {
-  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
-});
-
-function switchSub(group, targetId, btn) {
+function switchSub(group, targetId) {
   state.activeSub[group] = targetId;
-  const subBar = document.querySelector(`#tab-${group} .subtabs`);
-  subBar.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.sub === targetId));
-  const sec = document.getElementById(`tab-${group}`);
-  sec.querySelectorAll(':scope > .panel').forEach(p => p.classList.toggle('hidden', p.id !== targetId));
+  const sec = $(`tab-${group}`);
+  sec.querySelectorAll('.subtabs button').forEach((b) => b.classList.toggle('active', b.dataset.sub === targetId));
+  sec.querySelectorAll(':scope > .panel').forEach((p) => p.classList.toggle('hidden', p.id !== targetId));
+  flushRenders();
   updateFloatingBar();
 }
-
 function jumpTo(group, targetId) {
+  if (targetId) state.activeSub[group] = targetId;
   activateTab(group);
-  if (targetId) {
-    const btn = document.querySelector(`#tab-${group} .subtabs button[data-sub="${targetId}"]`);
-    if (btn) switchSub(group, targetId, btn);
-  }
+  if (targetId) switchSub(group, targetId);
 }
 
+/* ==========================================================================
+   Selection, floating capsule
+   ========================================================================== */
 function currentTrashBucket() {
   if (state.activeTab === 'system') return state.activeSub.system === 'sys-mole' ? 'mole' : 'orphans';
   if (state.activeTab === 'projects') return state.activeSub.projects === 'proj-kondo' ? 'kondo' : 'abandoned';
@@ -1242,30 +1332,24 @@ function currentTrashBucket() {
   }
   return null;
 }
-
 function selectedBytesForBucket(bucket) {
   const sel = state.selected[bucket];
   if (!sel || !sel.size) return 0;
-  if (bucket === 'mole') return state.mole.filter(x => sel.has(x.path)).reduce((a, b) => a + b.sizeBytes, 0);
-  if (bucket === 'orphans') return state.orphans.filter(x => sel.has(x.path)).reduce((a, b) => a + b.sizeBytes, 0);
-  if (bucket === 'kondo') return state.kondo.filter(p => sel.has(p.artifactPaths.join('||'))).reduce((a, b) => a + b.sizeBytes, 0);
-  if (bucket === 'abandoned') return state.abandoned.filter(p => sel.has(p.path)).reduce((a, b) => a + b.sizeBytes, 0);
-  if (bucket === 'big') return state.big.filter(f => sel.has(f.path)).reduce((a, b) => a + b.sizeBytes, 0);
-  if (bucket === 'dupes') {
+  const by = (list, keyFn) => sumOf(list, (x) => (sel.has(keyFn(x)) ? x.sizeBytes : 0));
+  if (bucket === 'mole') return by(state.mole, (x) => x.path);
+  if (bucket === 'orphans') return by(state.orphans, (x) => x.path);
+  if (bucket === 'kondo') return by(state.kondo, (p) => p.artifactPaths.join('||'));
+  if (bucket === 'abandoned') return by(state.abandoned, (p) => p.path);
+  if (bucket === 'big') return by(state.big, (f) => f.path);
+  if (bucket === 'dupes' || bucket === 'images') {
     let total = 0;
-    state.dupes.forEach(g => g.files.forEach(f => { if (sel.has(f.path)) total += f.sizeBytes; }));
-    return total;
-  }
-  if (bucket === 'images') {
-    let total = 0;
-    state.images.forEach(g => g.files.forEach(f => { if (sel.has(f.path)) total += f.sizeBytes; }));
+    for (const g of state[bucket]) for (const f of g.files) if (sel.has(f.path)) total += f.sizeBytes;
     return total;
   }
   return 0;
 }
-
 function updateFloatingBar() {
-  const bar = document.getElementById('floating-bar');
+  const bar = $('floating-bar');
   const bucket = currentTrashBucket();
   if (!bucket || !state.selected[bucket] || state.selected[bucket].size === 0) {
     bar.classList.remove('show');
@@ -1274,68 +1358,98 @@ function updateFloatingBar() {
   const count = bucket === 'kondo'
     ? [...state.selected.kondo].reduce((acc, k) => acc + k.split('||').filter(Boolean).length, 0)
     : state.selected[bucket].size;
-  const bytes = selectedBytesForBucket(bucket);
-  document.getElementById('floating-bar-text').textContent = `已勾选 ${count} 项 · 预计释放 ${humanBytes(bytes)}`;
-  document.getElementById('floating-wl-btn').classList.toggle('hidden', bucket !== 'mole');
+  $('floating-bar-text').innerHTML = `已勾选 ${count} 项 <span class="dim">· 预计释放 ${esc(humanBytes(selectedBytesForBucket(bucket)))}</span>`;
+  $('floating-wl-btn').classList.toggle('hidden', bucket !== 'mole');
   bar.classList.add('show');
 }
-
 function clearCurrentSelection() {
   const bucket = currentTrashBucket();
-  if (!bucket) return;
-  selectFiltered(bucket, false);
-  if (bucket === 'dupes') { state.selected.dupes.clear(); renderDupes(); }
-  if (bucket === 'images') { state.selected.images.clear(); renderImages(); }
-  if (bucket === 'big') { state.selected.big.clear(); renderBig(); }
-  updateFloatingBar();
+  if (bucket) selectFiltered(bucket, false);
 }
-
 function trashCurrentBucket() {
   const bucket = currentTrashBucket();
   if (bucket) confirmTrashSelected(bucket);
 }
 
-function updateTopTotals() {
-  const total = state.totals.mole + state.totals.orphans + state.totals.kondo + state.totals.dupes + state.totals.images;
-  const h = humanBytes(total);
-  document.getElementById('reclaim-badge').textContent = `可释放空间: ${h}`;
-  document.getElementById('hero-reclaim-val').textContent = h;
-  document.getElementById('pill-overview').textContent = total ? h : '就绪';
-  renderBreakdown(total);
+function visibleKeysForBucket(bucket) {
+  const L = state.limits;
+  if (bucket === 'mole') return getFilteredMole().slice(0, L.mole).map((x) => x.path);
+  if (bucket === 'orphans') return getFilteredOrphans().slice(0, L.orphans).map((x) => x.path);
+  if (bucket === 'kondo') return getFilteredKondo().slice(0, L.kondo).map((p) => p.artifactPaths.join('||'));
+  if (bucket === 'abandoned') return getFilteredAbandoned().slice(0, L.abandoned).map((p) => p.path);
+  if (bucket === 'big') return state.big.map((f) => f.path);
+  if (bucket === 'org') return state.orgMoves.map((m) => m.srcPath);
+  if (bucket === 'ai') return state.aiSuggestions.map((s) => s.srcPath);
+  return [];
+}
+function syncSelectAllCheckbox(bucket) {
+  const el = $(`chk-all-${bucket}`);
+  if (!el) return;
+  const keys = visibleKeysForBucket(bucket);
+  const set = state.selected[bucket];
+  let selCount = 0;
+  for (const k of keys) if (set.has(k)) selCount++;
+  el.checked = keys.length > 0 && selCount === keys.length;
+  el.indeterminate = selCount > 0 && selCount < keys.length;
+}
+function toggleSel(bucket, key, checked) {
+  if (checked) state.selected[bucket].add(key);
+  else state.selected[bucket].delete(key);
+  syncSelectAllCheckbox(bucket);
+  updateFloatingBar();
+}
+function selectFiltered(bucket, select) {
+  const set = state.selected[bucket];
+  if (!select) set.clear();
+  else visibleKeysForBucket(bucket).forEach((k) => set.add(k));
+  renderNow(bucket);
+  syncSelectAllCheckbox(bucket);
+  updateFloatingBar();
 }
 
+/* ==========================================================================
+   Totals & breakdown
+   ========================================================================== */
+function updateTopTotals() {
+  const t = state.totals;
+  const total = t.mole + t.orphans + t.kondo + t.dupes + t.images;
+  const h = humanBytes(total);
+  $('reclaim-badge').textContent = `可释放 ${h}`;
+  $('hero-reclaim-val').textContent = h;
+  $('pill-overview').textContent = total ? h : '就绪';
+  renderBreakdown(total);
+}
 function renderBreakdown(total) {
-  const bar = document.getElementById('breakdown-bar');
-  const legend = document.getElementById('breakdown-legend');
-  document.getElementById('breakdown-total').textContent = total ? humanBytes(total) : '-';
+  const bar = $('breakdown-bar');
+  const legend = $('breakdown-legend');
+  $('breakdown-total').textContent = total ? humanBytes(total) : '–';
   if (!total) {
     bar.innerHTML = '';
-    legend.textContent = '暂无扫描数据，点击右上角「重新只读体检 (Dry-Run)」即可生成。';
+    legend.textContent = '暂无扫描数据。点击右上角「重新体检」即可生成。';
     return;
   }
   const segs = [
-    { label: 'Mole 缓存', val: state.totals.mole, color: 'var(--accent)' },
-    { label: 'kondo 工程依赖', val: state.totals.kondo, color: 'var(--teal)' },
-    { label: '文档查重副本', val: state.totals.dupes, color: 'var(--purple)' },
+    { label: '系统缓存', val: state.totals.mole, color: 'var(--accent)' },
+    { label: '工程依赖', val: state.totals.kondo, color: 'var(--teal)' },
+    { label: '重复文档', val: state.totals.dupes, color: 'var(--purple)' },
     { label: '相似图片', val: state.totals.images, color: 'var(--amber)' },
-    { label: 'Pearcleaner 孤立配置', val: state.totals.orphans, color: 'var(--red-solid)' },
-  ].filter(s => s.val > 0);
-
-  bar.innerHTML = segs.map(s => {
-    const pct = Math.max(1.5, (s.val / total) * 100);
-    return `<div class="breakdown-seg" style="width:${pct.toFixed(2)}%;background:${s.color}" title="${esc(s.label)}: ${humanBytes(s.val)}"></div>`;
-  }).join('');
-
-  legend.innerHTML = segs.map(s => {
-    const pct = ((s.val / total) * 100).toFixed(1);
-    return `<span><i class="legend-dot" style="background:${s.color}"></i>${esc(s.label)} <strong>${humanBytes(s.val)}</strong> (${pct}%)</span>`;
-  }).join('');
+    { label: '孤立配置', val: state.totals.orphans, color: 'var(--blue)' },
+  ].filter((s) => s.val > 0);
+  bar.innerHTML = segs.map((s) => `<div class="breakdown-seg" style="width:${Math.max(1.5, (s.val / total) * 100).toFixed(2)}%;background:${s.color}" title="${esc(s.label)}: ${humanBytes(s.val)}"></div>`).join('');
+  legend.innerHTML = segs.map((s) => `<span><i class="legend-dot" style="background:${s.color}"></i>${esc(s.label)} <strong>${humanBytes(s.val)}</strong> · ${((s.val / total) * 100).toFixed(0)}%</span>`).join('');
 }
 
+/* ==========================================================================
+   Cache, status, checkup
+   ========================================================================== */
+function knownQuery() {
+  return Object.entries(state.versions).map(([k, v]) => `${k}:${v}`).join(',');
+}
 function applyCachedPayload(cached) {
   const mods = cached.modules || {};
   const ts = cached.timestamps || {};
-  state.timestamps = ts;
+  Object.assign(state.timestamps, ts);
+  if (cached.versions) state.versions = { ...cached.versions };
 
   if (mods.mole) applyMoleData(mods.mole, ts.mole);
   if (mods.orphans) applyOrphansData(mods.orphans, ts.orphans);
@@ -1348,977 +1462,773 @@ function applyCachedPayload(cached) {
   if (mods.big_files) applyBigData(mods.big_files, ts.big_files);
   if (mods.organize_sim) applyOrgSimData(mods.organize_sim, ts.organize_sim);
 
-  const badge = document.getElementById('cache-badge');
+  const badge = $('cache-badge');
   if (cached.lastCheckupAt) {
-    badge.textContent = `上次体检: ${relativeTime(cached.lastCheckupAt)}`;
+    badge.textContent = `上次体检 ${relativeTime(cached.lastCheckupAt)}`;
     badge.className = 'badge ok';
   } else {
-    badge.textContent = '缓存: 尚未体检';
+    badge.textContent = '尚未体检';
     badge.className = 'badge';
   }
 }
-
+function applyDisk(disk) {
+  if (!disk) return;
+  $('disk-badge').textContent = `可用 ${disk.freeHuman} / ${disk.totalHuman}`;
+  $('hero-disk-sub').innerHTML = `Macintosh HD · 可用 <strong>${esc(disk.freeHuman)}</strong> / ${esc(disk.totalHuman)}`;
+}
 async function loadInitialCache() {
   try {
     const cached = await api('/api/cache');
-    if (cached.disk) {
-      document.getElementById('disk-badge').textContent = `磁盘可用: ${cached.disk.freeHuman} / ${cached.disk.totalHuman}`;
-      document.getElementById('hero-disk-sub').innerHTML = `Macintosh HD · 可用 <strong>${esc(cached.disk.freeHuman)}</strong> / 总容量 ${esc(cached.disk.totalHuman)}`;
-    }
+    applyDisk(cached.disk);
     applyCachedPayload(cached);
-  } catch (e) {}
+  } catch (e) { /* first launch */ }
 }
 
+const ENGINE_NAMES = {
+  mole: 'tw93/Mole', pearcleaner: 'Pearcleaner', kondo: 'kondo', czkawka: 'czkawka_cli',
+  organize: 'organize', ocr: 'Vision OCR + PDFKit', trash: 'macOS 废纸篓',
+};
 async function loadStatus(forceToast = false) {
   try {
     const data = await api('/api/status');
-    document.getElementById('disk-badge').textContent = `磁盘可用: ${data.disk.freeHuman} / ${data.disk.totalHuman}`;
-    document.getElementById('hero-disk-sub').innerHTML = `Macintosh HD · 可用 <strong>${esc(data.disk.freeHuman)}</strong> / 总容量 ${esc(data.disk.totalHuman)}`;
+    applyDisk(data.disk);
     const fda = data.permissions.fullDiskAccess;
-    const fdaBadge = document.getElementById('fda-badge');
-    fdaBadge.textContent = fda ? '完全磁盘访问: 已授权' : '完全磁盘访问: 未授权';
+    const fdaBadge = $('fda-badge');
+    fdaBadge.textContent = fda ? '完全磁盘访问已授权' : '完全磁盘访问未授权';
     fdaBadge.className = `badge ${fda ? 'ok' : 'warn'}`;
-    document.getElementById('fda-banner').classList.toggle('hidden', fda);
-
-    const names = {
-      mole: 'tw93/Mole (mo)',
-      pearcleaner: 'alienator88/Pearcleaner',
-      kondo: 'tbillington/kondo',
-      czkawka: 'qarmin/czkawka_cli',
-      organize: 'tfeldmann/organize',
-      ocr: 'Apple Vision OCR + PDFKit',
-      trash: 'macOS 原生废纸篓 (/usr/bin/trash)',
-    };
-    let html = '<table><thead><tr><th>引擎组件</th><th>状态</th><th>版本</th><th>本机路径</th></tr></thead><tbody>';
-    for (const [k, info] of Object.entries(data.engines)) {
-      html += `<tr>
-        <td><strong>${esc(names[k] || k)}</strong></td>
-        <td>${info.installed ? '<span class="tag keep">已就绪</span>' : '<span class="tag warn">未检测到</span>'}</td>
-        <td>${esc(info.version || '-')}</td>
-        <td class="mono">${esc(info.path || '-')}</td>
-      </tr>`;
-    }
-    html += '</tbody></table>';
-    document.getElementById('engine-status-body').innerHTML = html;
+    $('fda-banner').classList.toggle('hidden', fda);
+    $('engine-status-body').innerHTML = `<div class="engine-grid">${Object.entries(data.engines).map(([k, info]) => `
+      <div class="engine">
+        <span class="dot ${info.installed ? 'ok' : ''}"></span>
+        <div style="min-width:0;">
+          <div class="name">${esc(ENGINE_NAMES[k] || k)} ${info.installed ? '' : '<span class="tag warn">未检测到</span>'}</div>
+          <div class="ver">${esc(info.version || '–')}</div>
+          <div class="mono dim" style="margin-top:2px;">${esc(info.path || '')}</div>
+        </div>
+      </div>`).join('')}</div>`;
     if (forceToast) showToast('状态已刷新');
   } catch (err) {
-    showToast('状态获取失败: ' + err.message);
+    showToast('状态获取失败：' + err.message);
   }
 }
-
 async function openFdaSettings() {
   await api('/api/system/open-fda', 'POST', {});
-  showToast('已打开系统设置 -> 隐私与安全性 -> 完全磁盘访问权限');
+  showToast('已打开 系统设置 › 隐私与安全性 › 完全磁盘访问权限');
 }
-
 async function revealPath(p) {
-  try { await api('/api/system/reveal', 'POST', { path: p }); } catch (e) { showToast('定位失败: ' + e.message); }
+  try { await api('/api/system/reveal', 'POST', { path: p }); } catch (e) { showToast('定位失败：' + e.message); }
 }
 
-let checkupPoller = null;
-async function startCheckup() {
-  const btn = document.getElementById('btn-full-checkup');
-  const pCard = document.getElementById('checkup-progress-card');
-  btn.disabled = true;
-  btn.textContent = '体检进行中...';
-  pCard.classList.remove('hidden');
-
-  try {
-    await api('/api/checkup/start', 'POST', {});
-    clearInterval(checkupPoller);
-    checkupPoller = setInterval(async () => {
-      try {
-        const p = await api('/api/checkup/progress');
-        const st = p.state;
-        const done = st.completed.length;
-        const tot = st.total || 9;
-        document.getElementById('checkup-progress-count').textContent = `${done} / ${tot}`;
-        document.getElementById('checkup-progress-fill').style.width = `${Math.round((done / tot) * 100)}%`;
-        document.getElementById('checkup-progress-sub').textContent = st.pending.length
-          ? `等待完成: ${st.pending.join(' · ')}`
-          : '全部引擎体检完成，缓存已保存';
-        applyCachedPayload(p.cached);
-        if (!st.running) {
-          clearInterval(checkupPoller);
-          btn.disabled = false;
-          btn.textContent = '重新只读体检 (Dry-Run)';
-          setTimeout(() => pCard.classList.add('hidden'), 1500);
-          showToast('全项体检完成，结果已缓存到本地');
-        }
-      } catch (err) {
-        clearInterval(checkupPoller);
-        btn.disabled = false;
-        btn.textContent = '重新只读体检 (Dry-Run)';
-      }
-    }, 350);
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = '重新只读体检 (Dry-Run)';
-    pCard.classList.add('hidden');
-    showToast('启动体检失败: ' + err.message);
-  }
+let checkupTimer = null;
+function setCheckupRunning(on) {
+  const btn = $('btn-full-checkup');
+  btn.disabled = on;
+  btn.classList.toggle('is-running', on);
+  $('cta-label').textContent = on ? '体检进行中…' : '重新体检';
 }
-
-async function runMoleAnalyze() {
-  const path = document.getElementById('analyze-path').value.trim();
-  const box = document.getElementById('analyze-result');
-  box.innerHTML = '<div class="empty">正在调用 mo analyze --json 扫描...</div>';
+function renderProgress(st) {
+  const done = st.completed.length;
+  const tot = st.total || 9;
+  $('checkup-progress-count').textContent = `${done} / ${tot}`;
+  $('checkup-progress-fill').style.transform = `scaleX(${(done / tot).toFixed(3)})`;
+  $('checkup-progress-title').textContent = st.running ? '正在并行运行只读体检…' : '体检完成';
+  $('checkup-progress-sub').textContent = st.pending.length ? `等待：${st.pending.join(' · ')}` : '全部引擎体检完成，结果已缓存';
+}
+async function pollCheckup() {
+  clearTimeout(checkupTimer);
   try {
-    const res = await api('/api/mole/analyze', 'POST', { path: path || null });
-    const d = res.data || {};
-    const entries = d.Entries || d.entries || [];
-    if (!entries.length) {
-      box.innerHTML = `<pre class="mono">${esc(JSON.stringify(d, null, 2).slice(0, 2000))}</pre>`;
+    const p = await api(`/api/checkup/progress?known=${encodeURIComponent(knownQuery())}`);
+    renderProgress(p.state);
+    applyCachedPayload(p.cached);
+    if (!p.state.running) {
+      setCheckupRunning(false);
+      setTimeout(() => $('checkup-progress-card').classList.add('hidden'), 1400);
+      showToast('全项体检完成，结果已缓存到本地');
       return;
     }
-    const maxSz = Math.max(1, ...entries.slice(0, 30).map(e => e.Size || e.size || 0));
-    let html = `<div style="margin-bottom:8px;color:var(--muted);">目标: <span class="mono">${esc(d.Path || path)}</span> · 总计: <strong>${humanBytes(d.TotalSize || 0)}</strong></div>`;
-    html += '<div class="table-wrap" style="max-height:260px;"><table><thead><tr><th>名称</th><th>类型</th><th style="width:120px;">占用</th><th>路径</th><th>操作</th></tr></thead><tbody>';
-    for (const e of entries.slice(0, 30)) {
-      const sz = e.Size || e.size || 0;
-      const pct = Math.max(2, Math.round((sz / maxSz) * 100));
-      html += `<tr>
-        <td><strong>${esc(e.Name || e.name)}</strong></td>
-        <td>${e.IsDir ? '目录' : '文件'}</td>
-        <td class="size-cell"><strong>${humanBytes(sz)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-        <td class="mono">${esc(e.Path || e.path)}</td>
-        <td><button class="btn sm" onclick='revealPath(${JSON.stringify(e.Path || e.path)})'>Finder</button></td>
-      </tr>`;
-    }
-    html += '</tbody></table></div>';
-    box.innerHTML = html;
   } catch (err) {
-    box.innerHTML = `<div class="empty">分析失败: ${esc(err.message)}</div>`;
+    setCheckupRunning(false);
+    return;
+  }
+  checkupTimer = setTimeout(pollCheckup, 500);
+}
+async function startCheckup() {
+  if ($('btn-full-checkup').disabled) return;
+  setCheckupRunning(true);
+  renderProgress({ completed: [], pending: [], total: 9, running: true });
+  $('checkup-progress-card').classList.remove('hidden');
+  try {
+    await api('/api/checkup/start', 'POST', {});
+    pollCheckup();
+  } catch (err) {
+    setCheckupRunning(false);
+    $('checkup-progress-card').classList.add('hidden');
+    showToast('启动体检失败：' + err.message);
   }
 }
+async function resumeCheckupIfRunning() {
+  try {
+    const p = await api(`/api/checkup/progress?known=${encodeURIComponent(knownQuery())}`);
+    if (p.state.running) {
+      setCheckupRunning(true);
+      $('checkup-progress-card').classList.remove('hidden');
+      renderProgress(p.state);
+      applyCachedPayload(p.cached);
+      checkupTimer = setTimeout(pollCheckup, 500);
+    }
+  } catch (e) { /* ignore */ }
+}
 
-/* ---- MOLE ---- */
+async function runMoleAnalyze(btn) {
+  const path = $('analyze-path').value.trim();
+  const box = $('analyze-result');
+  await withBusy(btn, '透视中…', async () => {
+    box.innerHTML = '<div class="empty">正在调用 mo analyze --json …</div>';
+    try {
+      const res = await api('/api/mole/analyze', 'POST', { path: path || null });
+      const d = res.data || {};
+      const entries = (d.Entries || d.entries || []).slice(0, 30);
+      if (!entries.length) {
+        box.innerHTML = `<pre class="mono">${esc(JSON.stringify(d, null, 2).slice(0, 2000))}</pre>`;
+        return;
+      }
+      const max = maxOf(entries, (e) => e.Size || e.size);
+      box.innerHTML = `<div class="note">目标 <span class="mono">${esc(d.Path || path)}</span> · 总计 <strong>${humanBytes(d.TotalSize || 0)}</strong></div>
+        <div class="table-wrap" style="max-height:300px;"><table><thead><tr><th>名称</th><th>类型</th><th style="width:130px;">占用</th><th>路径</th><th class="col-act"></th></tr></thead><tbody>
+        ${entries.map((e) => {
+          const sz = e.Size || e.size || 0;
+          const p = e.Path || e.path;
+          return `<tr><td class="strong">${esc(e.Name || e.name)}</td><td>${e.IsDir ? '目录' : '文件'}</td>${sizeCell(humanBytes(sz), sz, max)}<td class="mono">${esc(p)}</td>${revealBtn(p)}</tr>`;
+        }).join('')}</tbody></table></div>`;
+    } catch (err) {
+      box.innerHTML = `<div class="empty">分析失败：${esc(err.message)}</div>`;
+    }
+  });
+}
+
+function fillSelect(id, values, allLabel) {
+  const sel = $(id);
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${allLabel}</option>` + values.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if (values.includes(cur)) sel.value = cur;
+}
+async function runScan(btn, startMsg, url, body, apply, doneMsg) {
+  await withBusy(btn, '扫描中…', async () => {
+    showToast(startMsg);
+    try {
+      apply(await api(url, 'POST', body), nowTs());
+      showToast(doneMsg);
+    } catch (err) {
+      showToast('扫描失败：' + err.message);
+    }
+  });
+}
+
+/* ==========================================================================
+   Mole
+   ========================================================================== */
 function applyMoleData(res, ts) {
   state.mole = res.items || [];
   state.selected.mole.clear();
+  state.limits.mole = PAGE;
   state.totals.mole = res.totalBytes || 0;
-  document.getElementById('ov-mole-val').textContent = res.totalHuman || '0 B';
-  document.getElementById('ov-mole-sub').textContent = `${res.count || 0} 项可清理`;
-  document.getElementById('pill-system').textContent = humanBytes(state.totals.mole + state.totals.orphans);
-  if (ts) document.getElementById('ts-mole').textContent = `扫描于 ${relativeTime(ts)}`;
-  const sel = document.getElementById('mole-cat');
-  const curCat = sel.value;
-  const cats = [...new Set(state.mole.map(x => x.category))];
-  sel.innerHTML = '<option value="">全部分类</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  if (cats.includes(curCat)) sel.value = curCat;
+  setCardVal('ov-mole-val', res.totalHuman || '0 B');
+  $('ov-mole-sub').textContent = `${res.count || 0} 项可清理`;
+  $('pill-system').textContent = humanBytes(state.totals.mole + state.totals.orphans);
+  if (ts) $('ts-mole').textContent = `扫描于 ${relativeTime(ts)}`;
+  fillSelect('mole-cat', [...new Set(state.mole.map((x) => x.category))], '全部分类');
   updateTopTotals();
   updateFloatingBar();
-  renderMole();
+  requestRender('mole');
 }
-
-async function scanMole() {
-  showToast('正在运行 mo clean --dry-run...');
-  try {
-    applyMoleData(await api('/api/mole/scan', 'POST', {}), Math.floor(Date.now() / 1000));
-    showToast('Mole Dry-Run 扫描完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
-}
+const scanMole = (btn) => runScan(btn, '正在运行 mo clean --dry-run…', '/api/mole/scan', {}, applyMoleData, 'Mole Dry-Run 扫描完成');
 
 function getFilteredMole() {
-  const q = document.getElementById('mole-search').value.trim().toLowerCase();
-  const cat = document.getElementById('mole-cat').value;
-  const min1 = document.getElementById('mole-min1mb').checked;
-  return state.mole.filter(item => {
+  const q = $('mole-search').value.trim().toLowerCase();
+  const cat = $('mole-cat').value;
+  const min1 = $('mole-min1mb').checked;
+  return state.mole.filter((item) => {
     if (cat && item.category !== cat) return false;
-    if (min1 && item.sizeBytes < 1024 * 1024) return false;
+    if (min1 && item.sizeBytes < 1048576) return false;
     if (q && !(item.path + ' ' + item.category).toLowerCase().includes(q)) return false;
     return true;
   });
 }
-
-function renderMole() {
+function renderMoleNow() {
   const list = getFilteredMole();
-  const tbody = document.getElementById('mole-tbody');
-  document.getElementById('mole-summary').textContent = `显示 ${list.length} 项 · 合计 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  const shown = list.slice(0, state.limits.mole);
+  const tbody = $('mole-tbody');
+  $('mole-summary').textContent = `${list.length} 项 · ${humanBytes(sumOf(list, (x) => x.sizeBytes))}`;
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">无匹配条目。</td></tr>';
-    syncSelectAllCheckbox('mole');
-    return;
-  }
-  const maxSz = Math.max(1, ...list.slice(0, 400).map(x => x.sizeBytes));
-  tbody.innerHTML = list.slice(0, 400).map(item => {
-    const pct = Math.max(2, Math.round((item.sizeBytes / maxSz) * 100));
-    return `<tr>
-      <td><input type="checkbox" ${state.selected.mole.has(item.path) ? 'checked' : ''} onchange="toggleSel('mole', ${JSON.stringify(item.path)}, this.checked)" /></td>
+    tbody.innerHTML = emptyRow(6, state.mole.length ? '没有匹配的条目。' : '尚无数据，点击「重新扫描」查看结果。');
+  } else {
+    const max = maxOf(shown, (x) => x.sizeBytes);
+    tbody.innerHTML = shown.map((item) => `<tr data-row${selCls('mole', item.path)}>
+      ${chkCell('mole', item.path)}
       <td><span class="tag">${esc(item.category)}</span></td>
-      <td><strong>${esc(item.name)}</strong> ${item.whitelisted ? '<span class="tag keep">白名单</span>' : ''}</td>
-      <td class="size-cell"><strong>${esc(item.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      <td class="strong">${esc(item.name)} ${item.whitelisted ? '<span class="tag keep">白名单</span>' : ''}</td>
+      ${sizeCell(item.sizeHuman, item.sizeBytes, max)}
       <td class="mono">${esc(item.path)}</td>
-      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(item.path)})'>Finder</button></td>
-    </tr>`;
-  }).join('');
+      ${revealBtn(item.path)}
+    </tr>`).join('') + moreRow('mole', list.length - shown.length, 6);
+  }
   syncSelectAllCheckbox('mole');
 }
-
 async function whitelistMoleSelected() {
   const paths = [...state.selected.mole];
   if (!paths.length) return showToast('请先勾选条目');
-  const res = await api('/api/mole/whitelist', 'POST', { paths });
-  showToast(`已将 ${res.added.length} 项写入 Mole 白名单`);
-  if (res.updatedCache) applyMoleData(res.updatedCache);
+  try {
+    const res = await api('/api/mole/whitelist', 'POST', { paths });
+    showToast(`已将 ${res.added.length} 项写入 Mole 白名单`);
+    if (res.updatedCache) applyMoleData(res.updatedCache, state.timestamps.mole);
+  } catch (err) { showToast('写入白名单失败：' + err.message); }
 }
 
-/* ---- ORPHANS ---- */
+/* ==========================================================================
+   Orphans
+   ========================================================================== */
 function applyOrphansData(res, ts) {
   state.orphans = res.items || [];
   state.selected.orphans.clear();
+  state.limits.orphans = PAGE;
   state.totals.orphans = res.totalBytes || 0;
-  document.getElementById('ov-orphan-val').textContent = res.totalHuman || '0 B';
-  document.getElementById('ov-orphan-sub').textContent = `${res.count || 0} 项孤立残留（对比 ${res.installedAppsCount || 0} 个已装应用）`;
-  document.getElementById('pill-system').textContent = humanBytes(state.totals.mole + state.totals.orphans);
-  if (ts) document.getElementById('ts-orphans').textContent = `扫描于 ${relativeTime(ts)}`;
-  const sel = document.getElementById('orphan-cat');
-  const curCat = sel.value;
-  const cats = [...new Set(state.orphans.map(x => x.category))];
-  sel.innerHTML = '<option value="">全部位置</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  if (cats.includes(curCat)) sel.value = curCat;
+  setCardVal('ov-orphan-val', res.totalHuman || '0 B');
+  $('ov-orphan-sub').textContent = `${res.count || 0} 项残留 · 对比 ${res.installedAppsCount || 0} 个已装应用`;
+  $('pill-system').textContent = humanBytes(state.totals.mole + state.totals.orphans);
+  if (ts) $('ts-orphans').textContent = `扫描于 ${relativeTime(ts)}`;
+  fillSelect('orphan-cat', [...new Set(state.orphans.map((x) => x.category))], '全部位置');
   updateTopTotals();
   updateFloatingBar();
-  renderOrphans();
+  requestRender('orphans');
 }
-
-async function scanOrphans() {
-  showToast('正在检索孤立配置文件...');
-  try {
-    applyOrphansData(await api('/api/orphans/scan', 'POST', {}), Math.floor(Date.now() / 1000));
-    showToast('孤立配置文件扫描完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
-}
-
+const scanOrphans = (btn) => runScan(btn, '正在检索孤立配置文件…', '/api/orphans/scan', {}, applyOrphansData, '孤立配置扫描完成');
 async function openPearcleanerApp() {
-  await api('/api/orphans/open-pearcleaner', 'POST', {});
-  showToast('已启动 Pearcleaner.app');
+  try { await api('/api/orphans/open-pearcleaner', 'POST', {}); showToast('已启动 Pearcleaner.app'); }
+  catch (err) { showToast('启动失败：' + err.message); }
 }
-
 function getFilteredOrphans() {
-  const q = document.getElementById('orphan-search').value.trim().toLowerCase();
-  const cat = document.getElementById('orphan-cat').value;
-  return state.orphans.filter(item => {
+  const q = $('orphan-search').value.trim().toLowerCase();
+  const cat = $('orphan-cat').value;
+  return state.orphans.filter((item) => {
     if (cat && item.category !== cat) return false;
     if (q && !(item.appName + ' ' + item.bundleId + ' ' + item.path).toLowerCase().includes(q)) return false;
     return true;
   });
 }
-
-function renderOrphans() {
+function renderOrphansNow() {
   const list = getFilteredOrphans();
-  const tbody = document.getElementById('orphan-tbody');
-  document.getElementById('orphan-summary').textContent = `显示 ${list.length} 项 · 合计 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  const shown = list.slice(0, state.limits.orphans);
+  const tbody = $('orphan-tbody');
+  $('orphan-summary').textContent = `${list.length} 项 · ${humanBytes(sumOf(list, (x) => x.sizeBytes))}`;
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">无匹配孤立项。</td></tr>';
-    syncSelectAllCheckbox('orphans');
-    return;
-  }
-  const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
-  tbody.innerHTML = list.map(item => {
-    const pct = Math.max(2, Math.round((item.sizeBytes / maxSz) * 100));
-    return `<tr>
-      <td><input type="checkbox" ${state.selected.orphans.has(item.path) ? 'checked' : ''} onchange="toggleSel('orphans', ${JSON.stringify(item.path)}, this.checked)" /></td>
-      <td><strong>${esc(item.appName)}</strong><div class="mono" style="color:var(--muted);">${esc(item.bundleId)}</div></td>
+    tbody.innerHTML = emptyRow(6, state.orphans.length ? '没有匹配的孤立项。' : '点击「重新扫描」检索无主配置。');
+  } else {
+    const max = maxOf(shown, (x) => x.sizeBytes);
+    tbody.innerHTML = shown.map((item) => `<tr data-row${selCls('orphans', item.path)}>
+      ${chkCell('orphans', item.path)}
+      <td><div class="strong">${esc(item.appName)}</div><div class="mono dim">${esc(item.bundleId)}</div></td>
       <td><span class="tag blue">${esc(item.category)}</span></td>
-      <td class="size-cell"><strong>${esc(item.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-      <td><div class="mono">${esc(item.path)}</div><div style="font-size:11px;color:var(--muted);">${esc(item.reason)}</div></td>
-      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(item.path)})'>Finder</button></td>
-    </tr>`;
-  }).join('');
+      ${sizeCell(item.sizeHuman, item.sizeBytes, max)}
+      <td><div class="mono">${esc(item.path)}</div><div class="sub">${esc(item.reason)}</div></td>
+      ${revealBtn(item.path)}
+    </tr>`).join('') + moreRow('orphans', list.length - shown.length, 6);
+  }
   syncSelectAllCheckbox('orphans');
 }
 
-/* ---- INSTALLED APPS & PURPOSE ---- */
+/* ==========================================================================
+   Apps
+   ========================================================================== */
 function applyAppsData(res, ts) {
   state.apps = res.apps || [];
-  document.getElementById('ov-apps-val').textContent = `${res.count || 0} 个 · ${res.totalHuman || '0 B'}`;
-  document.getElementById('ov-apps-sub').textContent = `其中可清缓存约 ${res.cleanableCacheHuman || '0 B'}`;
-  document.getElementById('pill-apps').textContent = `${res.count || 0} 应用`;
-  if (ts) document.getElementById('ts-apps').textContent = `扫描于 ${relativeTime(ts)}`;
-  const sel = document.getElementById('apps-cat');
-  const cur = sel.value;
-  const cats = [...new Set(state.apps.map(a => a.category))];
-  sel.innerHTML = '<option value="">全部分类</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  if (cats.includes(cur)) sel.value = cur;
-  if (!state.selectedAppId && state.apps.length) {
-    state.selectedAppId = state.apps[0].id;
+  state.limits.apps = PAGE;
+  setCardVal('ov-apps-val', `${res.count || 0} 个 · ${res.totalHuman || '0 B'}`);
+  $('ov-apps-sub').textContent = `可清缓存约 ${res.cleanableCacheHuman || '0 B'}`;
+  $('pill-apps').textContent = `${res.count || 0}`;
+  if (ts) $('ts-apps').textContent = `扫描于 ${relativeTime(ts)}`;
+  fillSelect('apps-cat', [...new Set(state.apps.map((a) => a.category))], '全部分类');
+  if (!state.apps.some((a) => a.id === state.selectedAppId)) {
+    state.selectedAppId = state.apps.length ? state.apps[0].id : null;
+    state.appPathSelected.clear();
   }
-  renderApps();
-  renderAppInspector();
+  requestRender('apps');
 }
-
-async function scanApps() {
-  const includeSystem = document.getElementById('apps-include-sys').checked;
-  showToast('正在扫描已安装应用及关联目录...');
-  try {
-    applyAppsData(await api('/api/apps/scan', 'POST', { includeSystem }), Math.floor(Date.now() / 1000));
-    showToast('应用清单扫描完成');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
+async function scanApps(btn) {
+  const includeSystem = $('apps-include-sys').checked;
+  await runScan(btn, '正在扫描已安装应用及关联目录…', '/api/apps/scan', { includeSystem }, applyAppsData, '应用清单扫描完成');
 }
-
 function getFilteredApps() {
-  const q = document.getElementById('apps-search').value.trim().toLowerCase();
-  const cat = document.getElementById('apps-cat').value;
-  return state.apps.filter(a => {
+  const q = $('apps-search').value.trim().toLowerCase();
+  const cat = $('apps-cat').value;
+  return state.apps.filter((a) => {
     if (cat && a.category !== cat) return false;
     if (q && !(a.name + ' ' + a.originalName + ' ' + a.bundleId + ' ' + a.purpose + ' ' + a.category).toLowerCase().includes(q)) return false;
     return true;
   });
 }
-
-function renderApps() {
+function renderAppsNow() {
   const list = getFilteredApps();
-  const tbody = document.getElementById('apps-tbody');
-  document.getElementById('apps-summary').textContent = `显示 ${list.length} 个应用 · 共占用 ${humanBytes(list.reduce((a, b) => a + b.totalBytes, 0))}`;
+  const shown = list.slice(0, state.limits.apps);
+  const tbody = $('apps-tbody');
+  $('apps-summary').textContent = `${list.length} 个应用 · ${humanBytes(sumOf(list, (x) => x.totalBytes))}`;
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty">无匹配应用。</td></tr>';
-    return;
+    tbody.innerHTML = emptyRow(4, state.apps.length ? '没有匹配的应用。' : '点击「重新扫描」查看本机应用。');
+  } else {
+    const max = maxOf(shown, (x) => x.totalBytes);
+    tbody.innerHTML = shown.map((a) => `<tr data-app="${esc(a.id)}"${a.id === state.selectedAppId ? ' class="is-active"' : ''}>
+      <td><div class="strong">${esc(a.name)}${a.version ? ` <span class="sub" style="display:inline;">v${esc(a.version)}</span>` : ''}</div><div class="mono dim clip" title="${esc(a.bundleId)}">${esc(a.bundleId)}</div></td>
+      <td><span class="tag blue">${esc(a.category)}</span><div class="sub clamp2" title="${esc(a.purpose)}">${esc(a.purpose)}</div></td>
+      ${sizeCell(a.totalHuman, a.totalBytes, max)}
+      <td>${a.cacheBytes > 0 ? `<span class="tag warn">${esc(a.cacheHuman)}</span>` : '<span class="sub">0 B</span>'}</td>
+    </tr>`).join('') + moreRow('apps', list.length - shown.length, 4);
   }
-  const maxSz = Math.max(1, ...list.map(x => x.totalBytes));
-  tbody.innerHTML = list.map(a => {
-    const pct = Math.max(2, Math.round((a.totalBytes / maxSz) * 100));
-    const activeStyle = a.id === state.selectedAppId ? 'background:var(--accent-soft);' : '';
-    return `<tr style="cursor:pointer;${activeStyle}" onclick="selectApp('${esc(a.id)}')">
-      <td><strong>${esc(a.name)}</strong>${a.version ? ` <span style="font-size:11px;color:var(--muted);">v${esc(a.version)}</span>` : ''}<div class="mono" style="color:var(--muted);">${esc(a.bundleId)}</div></td>
-      <td><span class="tag blue">${esc(a.category)}</span><div style="font-size:11.5px;color:var(--muted);margin-top:3px;">${esc(a.purpose)}</div></td>
-      <td class="size-cell"><strong>${esc(a.totalHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-      <td>${a.cacheBytes > 0 ? `<span class="tag warn">${esc(a.cacheHuman)}</span>` : '<span style="color:var(--muted);">0 B</span>'}</td>
-    </tr>`;
-  }).join('');
+  renderAppInspector();
 }
-
 function selectApp(appId) {
+  if (state.selectedAppId === appId) return;
   state.selectedAppId = appId;
   state.appPathSelected.clear();
-  const app = state.apps.find(a => a.id === appId);
-  if (app) {
-    app.paths.filter(p => p.safeToClean && p.sizeBytes > 0).forEach(p => state.appPathSelected.add(p.path));
-  }
-  renderApps();
+  const app = state.apps.find((a) => a.id === appId);
+  if (app) app.paths.filter((p) => p.safeToClean && p.sizeBytes > 0).forEach((p) => state.appPathSelected.add(p.path));
+  const tbody = $('apps-tbody');
+  tbody.querySelectorAll('tr.is-active').forEach((tr) => tr.classList.remove('is-active'));
+  const row = tbody.querySelector(`tr[data-app="${CSS.escape(appId)}"]`);
+  if (row) row.classList.add('is-active');
   renderAppInspector();
 }
-
 function selectAppSafeCaches(onlySafe) {
-  const app = state.apps.find(a => a.id === state.selectedAppId);
+  const app = state.apps.find((a) => a.id === state.selectedAppId);
   if (!app) return;
   state.appPathSelected.clear();
-  app.paths.forEach(p => {
-    if (!onlySafe || p.safeToClean) state.appPathSelected.add(p.path);
-  });
+  app.paths.forEach((p) => { if (!onlySafe || p.safeToClean) state.appPathSelected.add(p.path); });
   renderAppInspector();
 }
-
-function toggleAppPath(path, checked) {
-  if (checked) state.appPathSelected.add(path);
-  else state.appPathSelected.delete(path);
-}
-
 function renderAppInspector() {
-  const box = document.getElementById('app-inspector-body');
-  const app = state.apps.find(a => a.id === state.selectedAppId);
+  const box = $('app-inspector-body');
+  const app = state.apps.find((a) => a.id === state.selectedAppId);
   if (!app) {
-    box.innerHTML = '<div class="empty">点击左侧任意应用，查看它的用处以及关联路径。</div>';
+    box.innerHTML = '<div class="empty">在左侧选择一个应用，查看它的用途与关联路径。</div>';
     return;
   }
+  const sel = state.appPathSelected;
   box.innerHTML = `
-    <div style="margin-bottom:12px;">
-      <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
-        <div>
-          <strong style="font-size:16px;">${esc(app.name)}</strong>
-          <span class="tag blue" style="margin-left:6px;">${esc(app.category)}</span>
-          ${app.isSystem ? '<span class="tag keep" style="margin-left:4px;">系统内置</span>' : ''}
-          <div class="mono" style="color:var(--muted); margin-top:2px;">${esc(app.bundleId)} ${app.version ? '· v' + esc(app.version) : ''}</div>
+    <div class="inspector-head">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+        <div style="min-width:0;">
+          <div class="inspector-title">${esc(app.name)} <span class="tag blue">${esc(app.category)}</span>${app.isSystem ? '<span class="tag keep">系统内置</span>' : ''}</div>
+          <div class="mono dim" style="margin-top:3px;">${esc(app.bundleId)}${app.version ? ' · v' + esc(app.version) : ''}</div>
         </div>
-        <button class="btn sm" onclick='revealPath(${JSON.stringify(app.installPath)})'>在 Finder 显示</button>
+        <button class="btn sm" data-reveal="${esc(app.installPath)}"><svg><use href="#i-reveal"/></svg>Finder</button>
       </div>
-      <div style="margin-top:8px; padding:8px 10px; background:var(--surface-2); border-radius:8px; font-size:12px;">
-        <strong>用处说明：</strong>${esc(app.purpose)} <span style="color:var(--muted);">（${esc(app.basis)}）</span>
-      </div>
-      <div style="margin-top:8px; display:flex; gap:12px; font-size:12px; color:var(--muted);">
-        <span>总占用 <strong>${esc(app.totalHuman)}</strong></span>
-        <span>本体 ${esc(app.appHuman)}</span>
-        <span>可清缓存 ${esc(app.cacheHuman)}</span>
+      <div class="purpose">${esc(app.purpose)} <span style="color:var(--muted);">— ${esc(app.basis)}</span></div>
+      <div class="stat-row">
+        <div class="stat"><div class="k">总占用</div><div class="v">${esc(app.totalHuman)}</div></div>
+        <div class="stat"><div class="k">本体</div><div class="v">${esc(app.appHuman)}</div></div>
+        <div class="stat"><div class="k">可清缓存</div><div class="v">${esc(app.cacheHuman)}</div></div>
       </div>
     </div>
-    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-      <button class="btn sm" onclick="selectAppSafeCaches(true)">仅选可安全清理缓存</button>
-      <button class="btn sm" onclick="selectAppSafeCaches(false)">全选含本体(卸载)</button>
-      <button class="btn sm danger" onclick="confirmTrashAppPaths()">所选移入废纸篓</button>
-    </div>
-    <div class="table-wrap" style="max-height:330px;">
-      <table>
-        <thead><tr><th style="width:28px;"></th><th>类型与体积</th><th>路径与用处</th></tr></thead>
-        <tbody>
-          ${app.paths.map(p => `
-            <tr>
-              <td><input type="checkbox" ${state.appPathSelected.has(p.path) ? 'checked' : ''} onchange="toggleAppPath(${JSON.stringify(p.path)}, this.checked)" /></td>
-              <td style="white-space:nowrap;">
-                <span class="tag ${p.safeToClean ? 'keep' : (p.role === 'installation' ? 'warn' : '')}">${esc(p.roleLabel)}</span>
-                <div style="font-weight:600;margin-top:2px;">${esc(p.sizeHuman)}</div>
-              </td>
-              <td>
-                <div class="mono">${esc(p.path)}</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(p.purpose)}</div>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+    <div class="inspector-body">
+      <div class="actions" style="margin-bottom:12px;">
+        <button class="btn sm" onclick="selectAppSafeCaches(true)">仅选安全缓存</button>
+        <button class="btn sm" onclick="selectAppSafeCaches(false)">全选含本体（卸载）</button>
+        <button class="btn sm danger" onclick="confirmTrashAppPaths()"><svg><use href="#i-trash"/></svg>移入废纸篓</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="col-chk"></th><th>类型与体积</th><th>路径与用途</th></tr></thead>
+          <tbody>${app.paths.map((p) => `
+            <tr data-row${sel.has(p.path) ? ' class="is-selected"' : ''}>
+              <td class="col-chk"><input type="checkbox" data-apppath="${esc(p.path)}" ${sel.has(p.path) ? 'checked' : ''} /></td>
+              <td class="nowrap-col"><span class="tag ${p.safeToClean ? 'keep' : (p.role === 'installation' ? 'warn' : '')}">${esc(p.roleLabel)}</span><div class="strong tabular" style="margin-top:3px;">${esc(p.sizeHuman)}</div></td>
+              <td><div class="mono">${esc(p.path)}</div><div class="sub">${esc(p.purpose)}</div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
 }
-
 function confirmTrashAppPaths() {
   const paths = [...state.appPathSelected];
   if (!paths.length) return showToast('请先在右侧勾选要清理的缓存或关联目录');
-  const app = state.apps.find(a => a.id === state.selectedAppId);
+  const app = state.apps.find((a) => a.id === state.selectedAppId);
   const hasAppBundle = app && paths.includes(app.installPath);
   openModal(
-    hasAppBundle ? `卸载并清理「${app.name}」（${paths.length} 项）` : `清理「${app ? app.name : ''}」关联项（${paths.length} 项）`,
+    hasAppBundle ? `卸载并清理「${app.name}」` : `清理「${app ? app.name : ''}」关联项`,
     hasAppBundle
-      ? '你勾选了应用本体（.app）及以下关联目录，确认后将全部移入 macOS 废纸篓（随时可放回原处）：'
-      : '以下缓存或数据目录将移入 macOS 废纸篓（应用本体保留）：',
-    paths,
-    'danger',
-    '确认移入废纸篓',
+      ? `你勾选了应用本体（.app）及关联目录，共 ${paths.length} 项。确认后将全部移入废纸篓，随时可放回原处。`
+      : `以下 ${paths.length} 项缓存或数据目录将移入废纸篓，应用本体保留。`,
+    paths, 'danger', '移入废纸篓',
     async () => {
       const res = await api('/api/apps/trash', 'POST', { paths });
       showToast(`已移入废纸篓 ${res.movedCount} 项，释放 ${res.reclaimedHuman}`);
       if (res.updatedApps) applyAppsData(res.updatedApps, state.timestamps.apps);
       if (res.updatedOrphans) applyOrphansData(res.updatedOrphans, state.timestamps.orphans);
       if (res.updatedMole) applyMoleData(res.updatedMole, state.timestamps.mole);
-      await loadStatus();
+      state.appPathSelected.clear();
+      renderNow('apps');
+      loadStatus();
     }
   );
 }
 
-/* ---- KONDO & ABANDONED ---- */
+/* ==========================================================================
+   kondo & abandoned
+   ========================================================================== */
 function applyKondoData(res, ts) {
   state.kondo = res.projects || [];
   state.selected.kondo.clear();
+  state.limits.kondo = PAGE;
   state.totals.kondo = res.totalBytes || 0;
-  document.getElementById('ov-kondo-val').textContent = res.totalHuman || '0 B';
-  document.getElementById('ov-kondo-sub').textContent = `${res.count || 0} 个工程含可清理依赖`;
-  document.getElementById('pill-projects').textContent = res.totalHuman || '0 B';
-  if (ts) document.getElementById('ts-kondo').textContent = `扫描于 ${relativeTime(ts)}`;
+  setCardVal('ov-kondo-val', res.totalHuman || '0 B');
+  $('ov-kondo-sub').textContent = `${res.count || 0} 个工程含可清理依赖`;
+  $('pill-projects').textContent = res.totalHuman || '0 B';
+  if (ts) $('ts-kondo').textContent = `扫描于 ${relativeTime(ts)}`;
   updateTopTotals();
   updateFloatingBar();
-  renderKondo();
+  requestRender('kondo');
 }
-
-async function scanKondo() {
-  showToast('正在运行 kondo -n 扫描...');
-  try {
-    applyKondoData(await api('/api/projects/kondo', 'POST', {}), Math.floor(Date.now() / 1000));
-    showToast('kondo 扫描完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
-}
-
+const scanKondo = (btn) => runScan(btn, '正在运行 kondo 扫描…', '/api/projects/kondo', {}, applyKondoData, 'kondo 扫描完成');
 function getFilteredKondo() {
-  const q = document.getElementById('kondo-search').value.trim().toLowerCase();
-  return state.kondo.filter(p => !q || (p.name + ' ' + p.projectPath + ' ' + p.projectType).toLowerCase().includes(q));
+  const q = $('kondo-search').value.trim().toLowerCase();
+  return state.kondo.filter((p) => !q || (p.name + ' ' + p.projectPath + ' ' + p.projectType).toLowerCase().includes(q));
 }
-
-function renderKondo() {
+function renderKondoNow() {
   const list = getFilteredKondo();
-  const tbody = document.getElementById('kondo-tbody');
-  document.getElementById('kondo-summary').textContent = `${list.length} 个工程 · 依赖占用 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  const shown = list.slice(0, state.limits.kondo);
+  const tbody = $('kondo-tbody');
+  $('kondo-summary').textContent = `${list.length} 个工程 · ${humanBytes(sumOf(list, (x) => x.sizeBytes))}`;
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">无匹配工程。</td></tr>';
-    syncSelectAllCheckbox('kondo');
-    return;
+    tbody.innerHTML = emptyRow(7, state.kondo.length ? '没有匹配的工程。' : '点击「重新扫描」识别依赖目录。');
+  } else {
+    const max = maxOf(shown, (x) => x.sizeBytes);
+    tbody.innerHTML = shown.map((p) => {
+      const key = p.artifactPaths.join('||');
+      return `<tr data-row${selCls('kondo', key)}>
+        ${chkCell('kondo', key)}
+        <td><div class="strong">${esc(p.name)}</div><div class="mono dim">${esc(p.projectPath)}</div></td>
+        <td class="nowrap-col"><span class="tag">${esc(p.projectType)}</span></td>
+        <td class="nowrap-col sub">${esc(p.lastActiveText)}</td>
+        <td><div class="tags">${p.artifacts.map((a) => `<span class="tag blue">${esc(a.name)} · ${esc(a.sizeHuman)}</span>`).join('')}</div></td>
+        ${sizeCell(p.sizeHuman, p.sizeBytes, max)}
+        ${revealBtn(p.projectPath)}
+      </tr>`;
+    }).join('') + moreRow('kondo', list.length - shown.length, 7);
   }
-  const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
-  tbody.innerHTML = list.map(p => {
-    const key = p.artifactPaths.join('||');
-    const pct = Math.max(2, Math.round((p.sizeBytes / maxSz) * 100));
-    return `<tr>
-      <td><input type="checkbox" ${state.selected.kondo.has(key) ? 'checked' : ''} onchange="toggleSel('kondo', ${JSON.stringify(key)}, this.checked)" /></td>
-      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted); margin-top:2px;">${esc(p.projectPath)}</div></td>
-      <td class="nowrap-col"><span class="tag">${esc(p.projectType)}</span></td>
-      <td class="nowrap-col" style="color:var(--muted);">${esc(p.lastActiveText)}</td>
-      <td><div style="display:flex;flex-wrap:wrap;gap:4px;">${p.artifacts.map(a => `<span class="tag blue">${esc(a.name)} (${esc(a.sizeHuman)})</span>`).join('')}</div></td>
-      <td class="size-cell"><strong>${esc(p.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-      <td class="nowrap-col"><button class="btn sm" onclick='revealPath(${JSON.stringify(p.projectPath)})'>Finder</button></td>
-    </tr>`;
-  }).join('');
   syncSelectAllCheckbox('kondo');
 }
 
 function applyAbandonedData(res, ts) {
   state.abandoned = res.projects || [];
   state.selected.abandoned.clear();
-  if (ts) document.getElementById('ts-abandoned').textContent = `扫描于 ${relativeTime(ts)}`;
+  state.limits.abandoned = PAGE;
+  if (ts) $('ts-abandoned').textContent = `扫描于 ${relativeTime(ts)}`;
   updateFloatingBar();
-  renderAbandoned();
+  requestRender('abandoned');
 }
-
-async function scanAbandoned() {
-  showToast('正在识别半成品与废弃 AI 试水工程...');
-  try {
-    applyAbandonedData(await api('/api/projects/abandoned', 'POST', {}), Math.floor(Date.now() / 1000));
-    showToast('半成品工程识别完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
-}
-
+const scanAbandoned = (btn) => runScan(btn, '正在识别半成品与废弃 AI 试水工程…', '/api/projects/abandoned', {}, applyAbandonedData, '半成品工程识别完成');
 function getFilteredAbandoned() {
-  const only = document.getElementById('abandoned-only').checked;
-  const q = document.getElementById('abandoned-search').value.trim().toLowerCase();
-  return state.abandoned.filter(p => {
+  const only = $('abandoned-only').checked;
+  const q = $('abandoned-search').value.trim().toLowerCase();
+  return state.abandoned.filter((p) => {
     if (only && !p.isAbandonedCandidate) return false;
     if (q && !(p.name + ' ' + p.path + ' ' + p.sourceLabel).toLowerCase().includes(q)) return false;
     return true;
   });
 }
-
 function selectAbandonedCandidates() {
   state.selected.abandoned.clear();
-  state.abandoned.filter(p => p.isAbandonedCandidate).forEach(p => state.selected.abandoned.add(p.path));
+  state.abandoned.filter((p) => p.isAbandonedCandidate).forEach((p) => state.selected.abandoned.add(p.path));
   updateFloatingBar();
-  renderAbandoned();
+  renderNow('abandoned');
 }
-
-function renderAbandoned() {
+function renderAbandonedNow() {
   const list = getFilteredAbandoned();
-  const tbody = document.getElementById('abandoned-tbody');
-  document.getElementById('abandoned-summary').textContent = `显示 ${list.length} 个工程 · 共 ${humanBytes(list.reduce((a, b) => a + b.sizeBytes, 0))}`;
+  const shown = list.slice(0, state.limits.abandoned);
+  const tbody = $('abandoned-tbody');
+  $('abandoned-summary').textContent = `${list.length} 个工程 · ${humanBytes(sumOf(list, (x) => x.sizeBytes))}`;
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">无匹配工程。</td></tr>';
-    syncSelectAllCheckbox('abandoned');
-    return;
-  }
-  const maxSz = Math.max(1, ...list.map(x => x.sizeBytes));
-  tbody.innerHTML = list.map(p => {
-    const pct = Math.max(2, Math.round((p.sizeBytes / maxSz) * 100));
-    return `<tr>
-      <td><input type="checkbox" ${state.selected.abandoned.has(p.path) ? 'checked' : ''} onchange="toggleSel('abandoned', ${JSON.stringify(p.path)}, this.checked)" /></td>
-      <td><strong>${esc(p.name)}</strong><div class="mono" style="color:var(--muted); margin-top:2px;">${esc(p.path)}</div></td>
+    tbody.innerHTML = emptyRow(7, state.abandoned.length ? '没有匹配的工程。' : '点击「重新扫描」分析实验项目。');
+  } else {
+    const max = maxOf(shown, (x) => x.sizeBytes);
+    tbody.innerHTML = shown.map((p) => `<tr data-row${selCls('abandoned', p.path)}>
+      ${chkCell('abandoned', p.path)}
+      <td><div class="strong">${esc(p.name)}</div><div class="mono dim">${esc(p.path)}</div></td>
       <td class="nowrap-col"><span class="tag">${esc(p.sourceLabel)}</span></td>
-      <td class="nowrap-col">${p.hasRemote ? '<span class="tag keep">有远程</span>' : '<span class="tag warn">无远程</span>'} <span style="color:var(--muted); margin-left:4px;">${p.daysIdle} 天前</span></td>
-      <td class="size-cell"><strong>${esc(p.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
-      <td style="line-height:1.45;">${p.isAbandonedCandidate ? '<span class="tag warn" style="margin-right:5px;">疑似废弃</span>' : ''}${esc(p.reason)}</td>
-      <td class="nowrap-col"><button class="btn sm" onclick='revealPath(${JSON.stringify(p.path)})'>Finder</button></td>
-    </tr>`;
-  }).join('');
+      <td class="nowrap-col">${p.hasRemote ? '<span class="tag keep">有远程</span>' : '<span class="tag warn">无远程</span>'} <span class="sub" style="display:inline; margin-left:4px;">${p.daysIdle} 天</span></td>
+      ${sizeCell(p.sizeHuman, p.sizeBytes, max)}
+      <td style="line-height:1.5;">${p.isAbandonedCandidate ? '<span class="tag warn" style="margin-right:5px;">疑似废弃</span>' : ''}<span class="sub" style="display:inline;">${esc(p.reason)}</span></td>
+      ${revealBtn(p.path)}
+    </tr>`).join('') + moreRow('abandoned', list.length - shown.length, 7);
+  }
   syncSelectAllCheckbox('abandoned');
 }
 
-/* ---- DUPES ---- */
+/* ==========================================================================
+   Dupes, images, big files
+   ========================================================================== */
+function refreshDupesOverview() {
+  const total = state.totals.dupes + state.totals.images;
+  setCardVal('ov-dupes-val', humanBytes(total));
+  $('ov-dupes-sub').textContent = `重复文件 ${state.dupes.length} 组 · 相似图 ${state.images.length} 组`;
+  $('pill-dupes').textContent = humanBytes(total);
+}
 function applyDupesData(res, ts) {
   state.dupes = res.groups || [];
   state.selected.dupes.clear();
   state.totals.dupes = res.reclaimableBytes || 0;
-  document.getElementById('ov-dupes-val').textContent = humanBytes(state.totals.dupes + state.totals.images);
-  document.getElementById('ov-dupes-sub').textContent = `重复文件 ${res.groupCount || 0} 组 · 相似图 ${state.images.length} 组`;
-  document.getElementById('pill-dupes').textContent = humanBytes(state.totals.dupes + state.totals.images);
-  if (ts) document.getElementById('ts-dupes').textContent = `扫描于 ${relativeTime(ts)}`;
+  refreshDupesOverview();
+  if (ts) $('ts-dupes').textContent = `扫描于 ${relativeTime(ts)}`;
   updateTopTotals();
   updateFloatingBar();
-  renderDupes();
+  requestRender('dupes');
 }
-
-async function scanDupes() {
-  const docsOnly = document.getElementById('dup-docs-only').checked;
-  showToast('正在运行 czkawka_cli dup...');
-  try {
-    applyDupesData(await api('/api/dupes/scan', 'POST', { docsOnly }), Math.floor(Date.now() / 1000));
-    showToast('重复文件扫描完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
+async function scanDupes(btn) {
+  const docsOnly = $('dup-docs-only').checked;
+  await runScan(btn, '正在运行 czkawka_cli dup…', '/api/dupes/scan', { docsOnly }, applyDupesData, '重复文件扫描完成');
 }
-
 function selectRecommendedDupes() {
   state.selected.dupes.clear();
-  state.dupes.forEach(g => g.files.forEach(f => { if (!f.recommendedKeep) state.selected.dupes.add(f.path); }));
+  state.dupes.forEach((g) => g.files.forEach((f) => { if (!f.recommendedKeep) state.selected.dupes.add(f.path); }));
   updateFloatingBar();
-  renderDupes();
+  renderNow('dupes');
 }
-
-function renderDupes() {
-  const box = document.getElementById('dup-groups');
-  document.getElementById('dup-summary').textContent = `共 ${state.dupes.length} 组重复 · 真实可释放空间: ${humanBytes(state.totals.dupes)}`;
-  if (!state.dupes.length) {
-    box.innerHTML = '<div class="empty">未发现重复文件。</div>';
-    return;
-  }
-  box.innerHTML = state.dupes.slice(0, 120).map(g => `
+function renderGroupFiles(bucket, files, labelFn) {
+  return files.map((f) => `<tr data-row${selCls(bucket, f.path)}>
+    ${chkCell(bucket, f.path)}
+    <td>${labelFn(f)}</td>
+    <td class="mono">${esc(f.path)}</td>
+    ${revealBtn(f.path)}
+  </tr>`).join('');
+}
+function renderDupesNow() {
+  const box = $('dup-groups');
+  $('dup-summary').textContent = `共 ${state.dupes.length} 组重复 · 可释放 ${humanBytes(state.totals.dupes)}`;
+  if (!state.dupes.length) { box.innerHTML = '<div class="empty">未发现重复文件。</div>'; return; }
+  box.innerHTML = state.dupes.slice(0, 120).map((g) => `
     <div class="group-card">
-      <div class="group-head">
-        <span>${esc((g.ext || 'file').toUpperCase())} · 单份 ${esc(g.fileSizeHuman)} · ${g.count} 份</span>
-        <span class="tag blue">可释放 ${esc(g.reclaimableHuman)}</span>
-      </div>
-      <table><tbody>
-        ${g.files.map(f => `
-          <tr>
-            <td style="width:32px;"><input type="checkbox" ${state.selected.dupes.has(f.path) ? 'checked' : ''} onchange="toggleSel('dupes', ${JSON.stringify(f.path)}, this.checked)" /></td>
-            <td>${f.recommendedKeep ? '<span class="tag keep">建议保留</span> ' : '<span class="tag warn">重复副本</span> '}<strong>${esc(f.name)}</strong></td>
-            <td class="mono">${esc(f.path)}</td>
-            <td style="width:70px;"><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
-          </tr>
-        `).join('')}
-      </tbody></table>
-    </div>
-  `).join('');
+      <div class="group-head"><span>${esc((g.ext || 'file').toUpperCase())}<span class="meta">单份 ${esc(g.fileSizeHuman)} · ${g.count} 份</span></span><span class="tag accent">可释放 ${esc(g.reclaimableHuman)}</span></div>
+      <table><tbody>${renderGroupFiles('dupes', g.files, (f) => `${f.recommendedKeep ? '<span class="tag keep">建议保留</span>' : '<span class="tag warn">副本</span>'} <span class="strong">${esc(f.name)}</span>`)}</tbody></table>
+    </div>`).join('');
 }
 
 function applyImagesData(res, ts) {
   state.images = res.groups || [];
   state.selected.images.clear();
   state.totals.images = res.reclaimableBytes || 0;
-  document.getElementById('ov-dupes-val').textContent = humanBytes(state.totals.dupes + state.totals.images);
-  document.getElementById('ov-dupes-sub').textContent = `重复文件 ${state.dupes.length} 组 · 相似图 ${state.images.length} 组`;
-  document.getElementById('pill-dupes').textContent = humanBytes(state.totals.dupes + state.totals.images);
-  if (ts) document.getElementById('ts-images').textContent = `扫描于 ${relativeTime(ts)}`;
+  refreshDupesOverview();
+  if (ts) $('ts-images').textContent = `扫描于 ${relativeTime(ts)}`;
   updateTopTotals();
   updateFloatingBar();
-  renderImages();
+  requestRender('images');
 }
-
-async function scanImages() {
-  showToast('正在运行 czkawka_cli image...');
-  try {
-    applyImagesData(await api('/api/dupes/images', 'POST', {}), Math.floor(Date.now() / 1000));
-    showToast('相似图片扫描完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
-}
-
+const scanImages = (btn) => runScan(btn, '正在运行 czkawka_cli image…', '/api/dupes/images', {}, applyImagesData, '相似图片扫描完成');
 function selectRecommendedImages() {
   state.selected.images.clear();
-  state.images.forEach(g => g.files.forEach(f => { if (!f.recommendedKeep) state.selected.images.add(f.path); }));
+  state.images.forEach((g) => g.files.forEach((f) => { if (!f.recommendedKeep) state.selected.images.add(f.path); }));
   updateFloatingBar();
-  renderImages();
+  renderNow('images');
 }
-
-function renderImages() {
-  const box = document.getElementById('img-groups');
-  document.getElementById('img-summary').textContent = `共 ${state.images.length} 组相似图片 · 预计可释放 ${humanBytes(state.totals.images)}`;
-  if (!state.images.length) {
-    box.innerHTML = '<div class="empty">未发现相似图片。</div>';
-    return;
-  }
+function renderImagesNow() {
+  const box = $('img-groups');
+  $('img-summary').textContent = `共 ${state.images.length} 组相似图片 · 可释放 ${humanBytes(state.totals.images)}`;
+  if (!state.images.length) { box.innerHTML = '<div class="empty">未发现相似图片。</div>'; return; }
   box.innerHTML = state.images.slice(0, 100).map((g, idx) => `
     <div class="group-card">
-      <div class="group-head">
-        <span>相似图组 #${idx + 1} · ${g.count} 张</span>
-        <span class="tag blue">可释放 ${esc(g.reclaimableHuman)}</span>
-      </div>
-      <table><tbody>
-        ${g.files.map(f => `
-          <tr>
-            <td style="width:32px;"><input type="checkbox" ${state.selected.images.has(f.path) ? 'checked' : ''} onchange="toggleSel('images', ${JSON.stringify(f.path)}, this.checked)" /></td>
-            <td>${f.recommendedKeep ? '<span class="tag keep">建议保留</span> ' : ''}<strong>${esc(f.name)}</strong> (${f.width}×${f.height} · ${esc(f.sizeHuman)})</td>
-            <td class="mono">${esc(f.path)}</td>
-            <td style="width:70px;"><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
-          </tr>
-        `).join('')}
-      </tbody></table>
-    </div>
-  `).join('');
+      <div class="group-head"><span>相似图组 #${idx + 1}<span class="meta">${g.count} 张</span></span><span class="tag accent">可释放 ${esc(g.reclaimableHuman)}</span></div>
+      <table><tbody>${renderGroupFiles('images', g.files, (f) => `${f.recommendedKeep ? '<span class="tag keep">建议保留</span> ' : ''}<span class="strong">${esc(f.name)}</span> <span class="sub" style="display:inline;">${f.width}×${f.height} · ${esc(f.sizeHuman)}</span>`)}</tbody></table>
+    </div>`).join('');
 }
 
 function applyBigData(res, ts) {
   state.big = res.files || [];
   state.selected.big.clear();
-  if (ts) document.getElementById('ts-big').textContent = `扫描于 ${relativeTime(ts)}`;
+  if (ts) $('ts-big').textContent = `扫描于 ${relativeTime(ts)}`;
   updateFloatingBar();
-  renderBig();
+  requestRender('big');
 }
-
-async function scanBigFiles() {
-  showToast('正在运行 czkawka_cli big...');
-  try {
-    applyBigData(await api('/api/dupes/big', 'POST', { limit: 40 }), Math.floor(Date.now() / 1000));
-    showToast('超大文件扫描完成并已缓存');
-  } catch (err) {
-    showToast('扫描失败: ' + err.message);
-  }
-}
-
-function renderBig() {
-  const tbody = document.getElementById('big-tbody');
+const scanBigFiles = (btn) => runScan(btn, '正在运行 czkawka_cli big…', '/api/dupes/big', { limit: 40 }, applyBigData, '超大文件扫描完成');
+function renderBigNow() {
+  const tbody = $('big-tbody');
   if (!state.big.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无记录。</td></tr>';
-    syncSelectAllCheckbox('big');
-    return;
-  }
-  const maxSz = Math.max(1, ...state.big.map(x => x.sizeBytes));
-  tbody.innerHTML = state.big.map(f => {
-    const pct = Math.max(2, Math.round((f.sizeBytes / maxSz) * 100));
-    return `<tr>
-      <td><input type="checkbox" ${state.selected.big.has(f.path) ? 'checked' : ''} onchange="toggleSel('big', ${JSON.stringify(f.path)}, this.checked)" /></td>
-      <td><strong>${esc(f.name)}</strong></td>
+    tbody.innerHTML = emptyRow(6, '暂无记录。');
+  } else {
+    const max = maxOf(state.big, (x) => x.sizeBytes);
+    tbody.innerHTML = state.big.map((f) => `<tr data-row${selCls('big', f.path)}>
+      ${chkCell('big', f.path)}
+      <td class="strong">${esc(f.name)}</td>
       <td><span class="tag">${esc((f.ext || 'file').toUpperCase())}</span></td>
-      <td class="size-cell"><strong>${esc(f.sizeHuman)}</strong><div class="size-bar"><div style="width:${pct}%"></div></div></td>
+      ${sizeCell(f.sizeHuman, f.sizeBytes, max)}
       <td class="mono">${esc(f.dir)}</td>
-      <td><button class="btn sm" onclick='revealPath(${JSON.stringify(f.path)})'>Finder</button></td>
-    </tr>`;
-  }).join('');
+      ${revealBtn(f.path)}
+    </tr>`).join('');
+  }
   syncSelectAllCheckbox('big');
 }
 
-/* ---- ORGANIZE & OCR ---- */
+/* ==========================================================================
+   Organize & OCR
+   ========================================================================== */
+function setOrgDir(dir) { $('org-dir').value = dir; simOrganize($('btn-org-sim')); }
 async function pickOrgFolder() {
   try {
     const res = await api('/api/system/pick-folder', 'POST', {});
     if (res.ok && res.path) {
-      document.getElementById('org-dir').value = res.path;
-      await simOrganize();
+      $('org-dir').value = res.path;
+      await simOrganize($('btn-org-sim'));
     }
-  } catch (err) {
-    showToast('目录选择失败: ' + err.message);
-  }
+  } catch (err) { showToast('目录选择失败：' + err.message); }
 }
-
 function applyOrgSimData(res, ts) {
   state.orgMoves = res.moves || [];
   state.orgUnmatched = res.unmatchedFiles || [];
-  state.selected.org = new Set(state.orgMoves.map(m => m.srcPath));
+  state.selected.org = new Set(state.orgMoves.map((m) => m.srcPath));
   state.aiSuggestions = [];
   state.selected.ai.clear();
-  document.getElementById('pill-organize').textContent = `${state.orgMoves.length} 命中`;
-  if (ts) document.getElementById('ts-organize').textContent = `预览于 ${relativeTime(ts)}`;
-  document.getElementById('org-sim-summary').textContent = `目录: ${res.targetDir} · 规则命中 ${res.matchedCount} 个，未命中 ${res.unmatchedCount} 个`;
-  document.getElementById('ai-unmatched-info').textContent = state.orgUnmatched.length
-    ? `当前未命中规则的文件 (${state.orgUnmatched.length} 个): ${state.orgUnmatched.map(u => u.name).slice(0, 8).join('、')}${state.orgUnmatched.length > 8 ? '...' : ''}`
+  $('pill-organize').textContent = `${state.orgMoves.length} 命中`;
+  if (ts) $('ts-organize').textContent = `预览于 ${relativeTime(ts)}`;
+  $('org-sim-summary').textContent = `${res.targetDir} · 命中 ${res.matchedCount} 个，未命中 ${res.unmatchedCount} 个`;
+  $('ai-unmatched-info').textContent = state.orgUnmatched.length
+    ? `未命中规则的文件 ${state.orgUnmatched.length} 个：${state.orgUnmatched.map((u) => u.name).slice(0, 8).join('、')}${state.orgUnmatched.length > 8 ? '…' : ''}`
     : '当前目录下所有文件均已被规则命中。';
-  renderOrgMoves();
-  renderAiSuggestions();
+  requestRender('org');
+  requestRender('ai');
 }
-
-async function simOrganize() {
-  const dir = document.getElementById('org-dir').value.trim();
-  showToast('正在运行 organize sim 模拟预览...');
-  try {
-    applyOrgSimData(await api('/api/organize/sim', 'POST', { targetDir: dir || null }), Math.floor(Date.now() / 1000));
-    showToast('organize 模拟预览完成');
-  } catch (err) {
-    showToast('模拟失败: ' + err.message);
-  }
+async function simOrganize(btn) {
+  const dir = $('org-dir').value.trim();
+  await withBusy(btn || null, '模拟中…', async () => {
+    try {
+      applyOrgSimData(await api('/api/organize/sim', 'POST', { targetDir: dir || null }), nowTs());
+      showToast('organize 模拟预览完成');
+    } catch (err) { showToast('模拟失败：' + err.message); }
+  });
 }
-
-function renderOrgMoves() {
-  const tbody = document.getElementById('org-tbody');
+function renderOrgNow() {
+  const tbody = $('org-tbody');
   if (!state.orgMoves.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">无规则命中文件。</td></tr>';
-    syncSelectAllCheckbox('org');
-    return;
-  }
-  tbody.innerHTML = state.orgMoves.map(m => `
-    <tr>
-      <td><input type="checkbox" ${state.selected.org.has(m.srcPath) ? 'checked' : ''} onchange="toggleSel('org', ${JSON.stringify(m.srcPath)}, this.checked)" /></td>
-      <td><strong>${esc(m.srcName)}</strong></td>
+    tbody.innerHTML = emptyRow(5, '没有规则命中的文件。');
+  } else {
+    tbody.innerHTML = state.orgMoves.map((m) => `<tr data-row${selCls('org', m.srcPath)}>
+      ${chkCell('org', m.srcPath)}
+      <td class="strong">${esc(m.srcName)}</td>
       <td><span class="tag blue">${esc(m.ruleName)}</span></td>
       <td class="mono">${esc(m.destPath)}</td>
-      <td>${esc(m.sizeHuman)}</td>
-    </tr>
-  `).join('');
+      <td class="nowrap-col tabular">${esc(m.sizeHuman)}</td>
+    </tr>`).join('');
+  }
   syncSelectAllCheckbox('org');
 }
-
-async function runAiTriage() {
+async function runAiTriage(btn) {
   if (!state.orgUnmatched.length) {
-    await simOrganize();
+    await simOrganize($('btn-org-sim'));
     if (!state.orgUnmatched.length) return showToast('没有未命中的文件需要分析');
   }
-  const btn = document.getElementById('btn-ai-triage');
-  btn.disabled = true;
-  btn.textContent = 'Vision OCR / 内容分析中...';
-  const baseUrl = document.getElementById('llm-url').value.trim();
-  const model = document.getElementById('llm-model').value.trim();
-  const apiKey = document.getElementById('llm-key').value.trim();
+  const baseUrl = $('llm-url').value.trim();
+  const model = $('llm-model').value.trim();
+  const apiKey = $('llm-key').value.trim();
   const llmConfig = (baseUrl && model) ? { baseUrl, model, apiKey } : null;
-  try {
-    const res = await api('/api/organize/ai-triage', 'POST', {
-      paths: state.orgUnmatched.map(u => u.path),
-      baseDir: document.getElementById('org-dir').value.trim() || null,
-      llmConfig,
-    });
-    state.aiSuggestions = res.suggestions || [];
-    state.selected.ai = new Set(state.aiSuggestions.map(s => s.srcPath));
-    renderAiSuggestions();
-    showToast(`已完成 ${state.aiSuggestions.length} 个未命中文件的内容/OCR分析`);
-  } catch (err) {
-    showToast('OCR/AI 分析失败: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '对未命中文件执行 OCR/AI 识别';
-  }
+  await withBusy(btn, 'OCR / 内容分析中…', async () => {
+    try {
+      const res = await api('/api/organize/ai-triage', 'POST', {
+        paths: state.orgUnmatched.map((u) => u.path),
+        baseDir: $('org-dir').value.trim() || null,
+        llmConfig,
+      });
+      state.aiSuggestions = res.suggestions || [];
+      state.selected.ai = new Set(state.aiSuggestions.map((s) => s.srcPath));
+      renderNow('ai');
+      showToast(`已完成 ${state.aiSuggestions.length} 个文件的内容 / OCR 分析`);
+    } catch (err) { showToast('OCR / AI 分析失败：' + err.message); }
+  });
 }
-
-function renderAiSuggestions() {
-  const tbody = document.getElementById('ai-tbody');
+function renderAiNow() {
+  const tbody = $('ai-tbody');
   if (!state.aiSuggestions.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">点击「对未命中文件执行 OCR/AI 识别」查看重命名与归档建议。</td></tr>';
-    syncSelectAllCheckbox('ai');
-    return;
+    tbody.innerHTML = emptyRow(5, '点击「执行 OCR / AI 识别」查看重命名与归档建议。');
+  } else {
+    tbody.innerHTML = state.aiSuggestions.map((s, idx) => `<tr${selCls('ai', s.srcPath)}>
+      ${chkCell('ai', s.srcPath)}
+      <td><div class="strong">${esc(s.currentName)}</div><div class="sub">${esc(s.sizeHuman)} · 置信度 ${s.confidence}%</div></td>
+      <td><input type="text" value="${esc(s.suggestedRelDir)}" data-ai="${idx}" data-field="suggestedRelDir" style="width:180px;" /></td>
+      <td><input type="text" value="${esc(s.suggestedName)}" data-ai="${idx}" data-field="suggestedName" style="width:230px;" /></td>
+      <td><div>${s.ocrUsed ? '<span class="tag accent">Vision OCR</span> ' : ''}${esc(s.basis)}</div><div class="sub">${esc((s.excerptPreview || '').slice(0, 90))}</div></td>
+    </tr>`).join('');
   }
-  tbody.innerHTML = state.aiSuggestions.map((s, idx) => `
-    <tr>
-      <td><input type="checkbox" ${state.selected.ai.has(s.srcPath) ? 'checked' : ''} onchange="toggleSel('ai', ${JSON.stringify(s.srcPath)}, this.checked)" /></td>
-      <td><strong>${esc(s.currentName)}</strong><div style="font-size:11px;color:var(--muted);">${esc(s.sizeHuman)} · 置信度 ${s.confidence}%</div></td>
-      <td><input type="text" value="${esc(s.suggestedRelDir)}" onchange="state.aiSuggestions[${idx}].suggestedRelDir = this.value" style="width:190px;" /></td>
-      <td><input type="text" value="${esc(s.suggestedName)}" onchange="state.aiSuggestions[${idx}].suggestedName = this.value" style="width:240px;" /></td>
-      <td><div>${s.ocrUsed ? '<span class="tag blue">Vision OCR</span> ' : ''}${esc(s.basis)}</div><div style="font-size:11px;color:var(--muted);">${esc((s.excerptPreview || '').slice(0, 90))}</div></td>
-    </tr>
-  `).join('');
   syncSelectAllCheckbox('ai');
 }
-
 function confirmApplyOrganize(kind) {
   let moves = [];
   if (kind === 'org') {
-    moves = state.orgMoves.filter(m => state.selected.org.has(m.srcPath)).map(m => ({
-      srcPath: m.srcPath,
-      destPath: m.destPath,
-      ruleName: m.ruleName,
-    }));
+    moves = state.orgMoves.filter((m) => state.selected.org.has(m.srcPath)).map((m) => ({ srcPath: m.srcPath, destPath: m.destPath, ruleName: m.ruleName }));
   } else {
-    const baseDir = document.getElementById('org-dir').value.trim();
-    moves = state.aiSuggestions.filter(s => state.selected.ai.has(s.srcPath)).map(s => {
+    const baseDir = $('org-dir').value.trim();
+    moves = state.aiSuggestions.filter((s) => state.selected.ai.has(s.srcPath)).map((s) => {
       const parent = baseDir ? baseDir.replace(/\/+$/, '') : s.srcPath.substring(0, s.srcPath.lastIndexOf('/'));
       const rel = s.suggestedRelDir.replace(/^\/+|\/+$/g, '');
-      return {
-        srcPath: s.srcPath,
-        destPath: `${parent}/${rel}/${s.suggestedName}`,
-        ruleName: `OCR/AI: ${s.suggestedCategory}`,
-      };
+      return { srcPath: s.srcPath, destPath: `${parent}/${rel}/${s.suggestedName}`, ruleName: `OCR/AI: ${s.suggestedCategory}` };
     });
   }
   if (!moves.length) return showToast('请先勾选至少一条移动预览');
-
   openModal(
-    `确认移动并整理 ${moves.length} 个文件`,
-    '所有文件将按以下路径移动（自动避开重名冲突，绝不覆盖，且记录可撤销历史）：',
-    moves.map(m => `${m.srcPath}  →  ${m.destPath}`),
-    'primary',
-    '确认移动',
+    `整理 ${moves.length} 个文件`,
+    '文件将按以下路径移动：自动避开重名冲突、绝不覆盖，并记录可撤销历史。',
+    moves.map((m) => `${m.srcPath}  →  ${m.destPath}`), 'primary', '确认移动',
     async () => {
       const res = await api('/api/organize/apply', 'POST', { moves });
       showToast(`整理完成：移动 ${res.movedCount} 个文件${res.failedCount ? `，失败 ${res.failedCount} 个` : ''}`);
-      await simOrganize();
+      await simOrganize($('btn-org-sim'));
       await loadOrgHistory();
     }
   );
 }
-
 async function loadOrgHistory() {
   try {
     const res = await api('/api/organize/history');
-    const body = document.getElementById('org-history-body');
+    const body = $('org-history-body');
     if (!res.batches || !res.batches.length) {
-      body.innerHTML = '<div class="empty">暂无整理历史记录。</div>';
+      body.innerHTML = '<div class="empty">暂无整理记录。</div>';
       return;
     }
-    body.innerHTML = '<table><thead><tr><th>批次</th><th>移动数量</th><th>状态</th><th>操作</th></tr></thead><tbody>' +
-      res.batches.map(b => `<tr>
-        <td class="mono">${esc(b.batchId)} (${new Date(b.ts * 1000).toLocaleString()})</td>
-        <td>${b.count} 个文件</td>
+    body.innerHTML = '<div class="table-wrap" style="max-height:320px;"><table><thead><tr><th>批次</th><th>时间</th><th>数量</th><th>状态</th><th style="text-align:right;">操作</th></tr></thead><tbody>' +
+      res.batches.map((b) => `<tr>
+        <td class="mono">${esc(b.batchId)}</td>
+        <td class="sub tabular">${new Date(b.ts * 1000).toLocaleString()}</td>
+        <td class="tabular">${b.count} 个文件</td>
         <td>${b.reverted ? '<span class="tag">已撤销</span>' : '<span class="tag keep">可撤销</span>'}</td>
-        <td>${b.reverted ? '-' : `<button class="btn sm" onclick="revertBatch('${esc(b.batchId)}')">撤销本次移动</button>`}</td>
-      </tr>`).join('') + '</tbody></table>';
-  } catch (e) {}
+        <td style="text-align:right;">${b.reverted ? '<span class="sub">–</span>' : `<button class="btn sm" data-revert="${esc(b.batchId)}">撤销</button>`}</td>
+      </tr>`).join('') + '</tbody></table></div>';
+  } catch (e) { /* ignore */ }
+}
+async function revertBatch(batchId, btn) {
+  await withBusy(btn, '撤销中…', async () => {
+    try {
+      const res = await api('/api/organize/revert', 'POST', { batchId });
+      showToast(`已撤销还原 ${res.revertedCount} 个文件`);
+      await loadOrgHistory();
+      await simOrganize($('btn-org-sim'));
+    } catch (err) { showToast('撤销失败：' + err.message); }
+  });
 }
 
-async function revertBatch(batchId) {
-  const res = await api('/api/organize/revert', 'POST', { batchId });
-  showToast(`已撤销还原 ${res.revertedCount} 个文件`);
-  await loadOrgHistory();
-  await simOrganize();
-}
-
-/* ---- SELECTION & INCREMENTAL CACHE PRUNE ---- */
-function visibleKeysForBucket(bucket) {
-  if (bucket === 'mole') return getFilteredMole().slice(0, 400).map(x => x.path);
-  if (bucket === 'orphans') return getFilteredOrphans().map(x => x.path);
-  if (bucket === 'kondo') return getFilteredKondo().map(p => p.artifactPaths.join('||'));
-  if (bucket === 'abandoned') return getFilteredAbandoned().map(p => p.path);
-  if (bucket === 'big') return state.big.map(f => f.path);
-  if (bucket === 'org') return state.orgMoves.map(m => m.srcPath);
-  if (bucket === 'ai') return state.aiSuggestions.map(s => s.srcPath);
-  return [];
-}
-
-function syncSelectAllCheckbox(bucket) {
-  const el = document.getElementById(`chk-all-${bucket}`);
-  if (!el) return;
-  const keys = visibleKeysForBucket(bucket);
-  const set = state.selected[bucket];
-  const selCount = keys.filter(k => set && set.has(k)).length;
-  el.checked = keys.length > 0 && selCount === keys.length;
-  el.indeterminate = selCount > 0 && selCount < keys.length;
-}
-
-function toggleSel(bucket, key, checked) {
-  if (checked) state.selected[bucket].add(key);
-  else state.selected[bucket].delete(key);
-  syncSelectAllCheckbox(bucket);
-  updateFloatingBar();
-}
-
-function selectFiltered(bucket, select) {
-  const set = state.selected[bucket];
-  if (!select) { set.clear(); }
-  else {
-    visibleKeysForBucket(bucket).forEach(k => set.add(k));
-  }
-
-  if (bucket === 'mole') renderMole();
-  if (bucket === 'orphans') renderOrphans();
-  if (bucket === 'kondo') renderKondo();
-  if (bucket === 'abandoned') renderAbandoned();
-  if (bucket === 'dupes') renderDupes();
-  if (bucket === 'images') renderImages();
-  if (bucket === 'big') renderBig();
-  if (bucket === 'org') renderOrgMoves();
-  if (bucket === 'ai') renderAiSuggestions();
-  syncSelectAllCheckbox(bucket);
-  updateFloatingBar();
-}
-
+/* ==========================================================================
+   Trash confirmation & modal
+   ========================================================================== */
 function confirmTrashSelected(bucket) {
   let paths = [];
   let endpoint = '';
-  let totalBytes = selectedBytesForBucket(bucket);
-
-  if (bucket === 'mole') {
-    paths = [...state.selected.mole];
-    endpoint = '/api/mole/trash';
-  } else if (bucket === 'orphans') {
-    paths = [...state.selected.orphans];
-    endpoint = '/api/orphans/trash';
-  } else if (bucket === 'kondo') {
-    [...state.selected.kondo].forEach(k => k.split('||').forEach(p => { if (p) paths.push(p); }));
+  const totalBytes = selectedBytesForBucket(bucket);
+  if (bucket === 'mole') { paths = [...state.selected.mole]; endpoint = '/api/mole/trash'; }
+  else if (bucket === 'orphans') { paths = [...state.selected.orphans]; endpoint = '/api/orphans/trash'; }
+  else if (bucket === 'kondo') {
+    [...state.selected.kondo].forEach((k) => k.split('||').forEach((p) => { if (p) paths.push(p); }));
     endpoint = '/api/projects/trash';
-  } else if (bucket === 'abandoned') {
-    paths = [...state.selected.abandoned];
-    endpoint = '/api/projects/trash';
-  } else if (bucket === 'dupes' || bucket === 'images' || bucket === 'big') {
-    paths = [...state.selected[bucket]];
-    endpoint = '/api/dupes/trash';
-  }
-
+  } else if (bucket === 'abandoned') { paths = [...state.selected.abandoned]; endpoint = '/api/projects/trash'; }
+  else if (bucket === 'dupes' || bucket === 'images' || bucket === 'big') { paths = [...state.selected[bucket]]; endpoint = '/api/dupes/trash'; }
   if (!paths.length) return showToast('请先勾选要清理的项目');
 
   openModal(
-    `移入 macOS 废纸篓确认（${paths.length} 项）`,
-    `预计释放空间：${humanBytes(totalBytes)}。所有条目将移入系统废纸篓并自动更新本地缓存，无需重新体检：`,
-    paths,
-    'danger',
-    '确认移入废纸篓',
+    `移入废纸篓 · ${paths.length} 项`,
+    `预计释放 ${humanBytes(totalBytes)}。所有条目将移入 macOS 废纸篓（可随时放回），本地缓存会自动增量更新，无需重新体检。`,
+    paths, 'danger', '移入废纸篓',
     async () => {
       const res = await api(endpoint, 'POST', { paths });
       showToast(`已移入废纸篓 ${res.movedCount} 项，释放 ${res.reclaimedHuman}`);
@@ -2335,35 +2245,95 @@ function confirmTrashSelected(bucket) {
         if (u.sim_images) applyImagesData(u.sim_images, state.timestamps.sim_images);
         if (u.big_files) applyBigData(u.big_files, state.timestamps.big_files);
       }
-      await loadStatus();
+      loadStatus();
     }
   );
 }
 
 let modalAction = null;
+const MODAL_MAX_LINES = 400;
 function openModal(title, desc, lines, btnKind, btnText, onConfirm) {
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-desc').textContent = desc;
-  document.getElementById('modal-list').innerHTML = lines.map(l => `<div>${esc(l)}</div>`).join('');
-  const cbtn = document.getElementById('modal-confirm-btn');
-  cbtn.className = `btn ${btnKind}`;
+  $('modal-title').textContent = title;
+  $('modal-desc').textContent = desc;
+  const shown = lines.slice(0, MODAL_MAX_LINES).map((l) => `<div>${esc(l)}</div>`).join('');
+  $('modal-list').innerHTML = shown + (lines.length > MODAL_MAX_LINES ? `<div style="color:var(--muted);">…以及另外 ${lines.length - MODAL_MAX_LINES} 项</div>` : '');
+  const cbtn = $('modal-confirm-btn');
+  cbtn.className = `btn ${btnKind} solid`;
   cbtn.textContent = btnText;
   modalAction = onConfirm;
-  document.getElementById('confirm-modal').classList.add('show');
+  $('confirm-modal').classList.add('show');
+  setTimeout(() => cbtn.focus(), 30);
 }
 function closeModal() {
-  document.getElementById('confirm-modal').classList.remove('show');
+  $('confirm-modal').classList.remove('show');
   modalAction = null;
 }
-document.getElementById('modal-confirm-btn').addEventListener('click', async () => {
+$('modal-confirm-btn').addEventListener('click', async () => {
   const fn = modalAction;
   closeModal();
   if (fn) {
-    try { await fn(); } catch (err) { showToast('执行失败: ' + err.message); }
+    try { await fn(); } catch (err) { showToast('执行失败：' + err.message); }
+  }
+});
+$('confirm-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'confirm-modal') closeModal(); });
+
+/* ==========================================================================
+   Event delegation (one listener per event type instead of thousands)
+   ========================================================================== */
+const RENDER = {
+  mole: renderMoleNow, orphans: renderOrphansNow, apps: renderAppsNow, kondo: renderKondoNow,
+  abandoned: renderAbandonedNow, dupes: renderDupesNow, images: renderImagesNow, big: renderBigNow,
+  org: renderOrgNow, ai: renderAiNow,
+};
+
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.matches('input[data-sel]')) {
+    toggleSel(t.dataset.sel, t.dataset.key, t.checked);
+    const tr = t.closest('tr');
+    if (tr) tr.classList.toggle('is-selected', t.checked);
+  } else if (t.matches('input[data-apppath]')) {
+    if (t.checked) state.appPathSelected.add(t.dataset.apppath);
+    else state.appPathSelected.delete(t.dataset.apppath);
+    const tr = t.closest('tr');
+    if (tr) tr.classList.toggle('is-selected', t.checked);
+  } else if (t.matches('input[data-ai]')) {
+    const s = state.aiSuggestions[Number(t.dataset.ai)];
+    if (s) s[t.dataset.field] = t.value;
   }
 });
 
-loadInitialCache();
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  const reveal = t.closest('[data-reveal]');
+  if (reveal) { revealPath(reveal.dataset.reveal); return; }
+  const more = t.closest('[data-more]');
+  if (more) { const k = more.dataset.more; state.limits[k] += PAGE; RENDER[k](); return; }
+  const rev = t.closest('[data-revert]');
+  if (rev) { revertBatch(rev.dataset.revert, rev); return; }
+  const appRow = t.closest('tr[data-app]');
+  if (appRow) { selectApp(appRow.dataset.app); return; }
+  const row = t.closest('tr[data-row]');
+  if (row && !t.closest('input, button, a, select, textarea, label')) {
+    if (String(window.getSelection() || '').length) return;
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', { bubbles: true })); }
+  }
+});
+
+const TAB_ORDER = ['overview', 'system', 'apps', 'projects', 'dupes', 'organize'];
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('confirm-modal').classList.contains('show')) { closeModal(); return; }
+  if (e.metaKey && !e.shiftKey && !e.altKey && /^[1-6]$/.test(e.key)) {
+    e.preventDefault();
+    activateTab(TAB_ORDER[Number(e.key) - 1]);
+  }
+});
+
+/* ==========================================================================
+   Boot
+   ========================================================================== */
+loadInitialCache().then(resumeCheckupIfRunning);
 loadStatus();
 loadOrgHistory();
 </script>
